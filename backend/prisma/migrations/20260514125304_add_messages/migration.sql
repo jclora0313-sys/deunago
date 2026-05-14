@@ -1,8 +1,0 @@
--- CreateTable
-CREATE TABLE "Message" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "taskId" INTEGER NOT NULL,
-    "senderId" INTEGER NOT NULL,
-    "text" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
