@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  phone    String
+  password String
+  role     String
+  status   String
+}
+
+model Task {
+  id             Int     @id @default(autoincrement())
+  description    String
+  status         String
+  clientId       Int
+  runnerId       Int?
+  pickupLat      Float?
+  pickupLng      Float?
+  dropoffLat     Float?
+  dropoffLng     Float?
+  runnerLat      Float?
+  runnerLng      Float?
+  distanceKm     Float?
+  estimatedPrice Float?
+  rating         Int?
+  review         String?
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  senderId  Int
+  text      String
+  createdAt DateTime @default(now())
+}
