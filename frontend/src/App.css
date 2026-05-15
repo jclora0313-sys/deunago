@@ -647,4 +647,50 @@ strong {
   .admin-stat-value {
     font-size: 28px;
   }
+} 
+
+/* FILTERS */
+
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 18px 0 22px;
+  padding: 10px;
+  background: rgba(10, 10, 10, 0.65);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+.filter-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 11px 16px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--gray);
+  font-family: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.filter-btn:hover {
+  transform: translateY(-1px);
+  color: var(--white);
+}
+
+.filter-btn.active {
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+  color: #050505;
+}
+
+@media (max-width: 768px) {
+  .filters-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .filter-btn {
+    width: 100%;
+  }
 }

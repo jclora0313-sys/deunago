@@ -27,6 +27,9 @@ function App() {
   const [earnings, setEarnings] = useState(null);
   const [notifications, setNotifications] = useState([]);
 
+  const [clientFilter, setClientFilter] = useState("ALL");
+  const [runnerFilter, setRunnerFilter] = useState("ALL");
+
   const [description, setDescription] = useState("");
   const [pickupLat, setPickupLat] = useState("");
   const [pickupLng, setPickupLng] = useState("");
@@ -488,6 +491,16 @@ function App() {
     );
   };
 
+  const filteredClientTasks =
+    clientFilter === "ALL"
+      ? clientTasks
+      : clientTasks.filter((task) => task.status === clientFilter);
+
+  const filteredRunnerTasks =
+    runnerFilter === "ALL"
+      ? myTasks
+      : myTasks.filter((task) => task.status === runnerFilter);
+
   const ChatBox = () => {
     if (!activeChatTaskId) return null;
 
@@ -737,11 +750,62 @@ function App() {
                 Cargar mis mandados
               </button>
 
-              {clientTasks.length === 0 && (
-                <p className="empty">No tienes mandados creados.</p>
+              <div className="filters-bar">
+                <button
+                  onClick={() => setClientFilter("ALL")}
+                  className={clientFilter === "ALL" ? "filter-btn active" : "filter-btn"}
+                >
+                  Todos
+                </button>
+
+                <button
+                  onClick={() => setClientFilter("OPEN")}
+                  className={clientFilter === "OPEN" ? "filter-btn active" : "filter-btn"}
+                >
+                  Abiertos
+                </button>
+
+                <button
+                  onClick={() => setClientFilter("ACCEPTED")}
+                  className={clientFilter === "ACCEPTED" ? "filter-btn active" : "filter-btn"}
+                >
+                  Aceptados
+                </button>
+
+                <button
+                  onClick={() => setClientFilter("PICKED_UP")}
+                  className={clientFilter === "PICKED_UP" ? "filter-btn active" : "filter-btn"}
+                >
+                  Recogidos
+                </button>
+
+                <button
+                  onClick={() => setClientFilter("ON_THE_WAY")}
+                  className={clientFilter === "ON_THE_WAY" ? "filter-btn active" : "filter-btn"}
+                >
+                  En camino
+                </button>
+
+                <button
+                  onClick={() => setClientFilter("DELIVERED")}
+                  className={clientFilter === "DELIVERED" ? "filter-btn active" : "filter-btn"}
+                >
+                  Entregados
+                </button>
+
+                <button
+                  onClick={() => setClientFilter("CANCELLED")}
+                  className={clientFilter === "CANCELLED" ? "filter-btn active" : "filter-btn"}
+                >
+                  Cancelados
+                </button>
+              </div>
+
+              {filteredClientTasks.length === 0 && (
+                <p className="empty">No hay mandados con este filtro.</p>
               )}
 
-              {clientTasks.map((task) => (
+              {filteredClientTasks.map((task) => (
                 <div key={task.id} className="task-card">
                   <div className={getBadgeClass(task.status)}>
                     {getStatusText(task.status)}
@@ -931,11 +995,48 @@ function App() {
 
                 <h2 className="runner-section-title">🛵 Mis mandados</h2>
 
-                {myTasks.length === 0 && (
-                  <p className="empty">No tienes mandados asignados cargados.</p>
+                <div className="filters-bar">
+                  <button
+                    onClick={() => setRunnerFilter("ALL")}
+                    className={runnerFilter === "ALL" ? "filter-btn active" : "filter-btn"}
+                  >
+                    Todos
+                  </button>
+
+                  <button
+                    onClick={() => setRunnerFilter("ACCEPTED")}
+                    className={runnerFilter === "ACCEPTED" ? "filter-btn active" : "filter-btn"}
+                  >
+                    Aceptados
+                  </button>
+
+                  <button
+                    onClick={() => setRunnerFilter("PICKED_UP")}
+                    className={runnerFilter === "PICKED_UP" ? "filter-btn active" : "filter-btn"}
+                  >
+                    Recogidos
+                  </button>
+
+                  <button
+                    onClick={() => setRunnerFilter("ON_THE_WAY")}
+                    className={runnerFilter === "ON_THE_WAY" ? "filter-btn active" : "filter-btn"}
+                  >
+                    En camino
+                  </button>
+
+                  <button
+                    onClick={() => setRunnerFilter("DELIVERED")}
+                    className={runnerFilter === "DELIVERED" ? "filter-btn active" : "filter-btn"}
+                  >
+                    Entregados
+                  </button>
+                </div>
+
+                {filteredRunnerTasks.length === 0 && (
+                  <p className="empty">No hay mandados con este filtro.</p>
                 )}
 
-                {myTasks.map((task) => (
+                {filteredRunnerTasks.map((task) => (
                   <div key={task.id} className="runner-task-card">
                     <div className={getBadgeClass(task.status)}>
                       {getStatusText(task.status)}
