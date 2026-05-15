@@ -530,7 +530,7 @@ function App() {
     <div className="page">
       <div className="navbar">
         <div>
-          <div className="logo">🚀 DeUnaGo</div>
+          <div className="logo">DeUnaGo</div>
 
           {user && (
             <div className="user-info">
@@ -548,90 +548,100 @@ function App() {
 
       <div className="container">
         {!user && (
-          <div className="card">
-            <div className="button-group">
-              <button
-                onClick={() => setMode("login")}
-                className="button button-primary"
-              >
-                Login
-              </button>
-
-              <button
-                onClick={() => setMode("register")}
-                className="button button-primary"
-              >
-                Registro
-              </button>
+          <div className="auth-shell">
+            <div className="auth-brand">
+              <div className="auth-logo"></div>
+              <h1>Tu mandado en minutos</h1>
+              <p>
+                Pide lo que necesitas y conecta con mandaderos disponibles cerca de ti.
+              </p>
             </div>
 
-            <br />
-
-            {mode === "login" && (
-              <>
-                <h2 className="card-title">Iniciar sesión</h2>
-
-                <input
-                  className="input"
-                  placeholder="Teléfono"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-
-                <input
-                  className="input"
-                  type="password"
-                  placeholder="Contraseña"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-
-                <button onClick={login} className="button button-primary">
-                  Entrar
-                </button>
-              </>
-            )}
-
-            {mode === "register" && (
-              <>
-                <h2 className="card-title">Crear cuenta</h2>
-
-                <input
-                  className="input"
-                  placeholder="Nombre"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-
-                <input
-                  className="input"
-                  placeholder="Teléfono"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-
-                <input
-                  className="input"
-                  type="password"
-                  placeholder="Contraseña"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-
-                <select
-                  className="input"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
+            <div className="auth-card">
+              <div className="auth-tabs">
+                <button
+                  onClick={() => setMode("login")}
+                  className={mode === "login" ? "auth-tab active" : "auth-tab"}
                 >
-                  <option value="CLIENT">Cliente</option>
-                  <option value="RUNNER">Mandadero</option>
-                </select>
-
-                <button onClick={register} className="button button-primary">
-                  Crear cuenta
+                  Login
                 </button>
-              </>
-            )}
+
+                <button
+                  onClick={() => setMode("register")}
+                  className={mode === "register" ? "auth-tab active" : "auth-tab"}
+                >
+                  Registro
+                </button>
+              </div>
+
+              {mode === "login" && (
+                <>
+                  <h2>Bienvenido</h2>
+                  <p className="auth-subtitle">Inicia sesión para continuar</p>
+
+                  <input
+                    className="input"
+                    placeholder="Teléfono"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+
+                  <input
+                    className="input"
+                    type="password"
+                    placeholder="Contraseña"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+
+                  <button onClick={login} className="button button-primary auth-main-btn">
+                    Iniciar sesión
+                  </button>
+                </>
+              )}
+
+              {mode === "register" && (
+                <>
+                  <h2>Crear cuenta</h2>
+                  <p className="auth-subtitle">Empieza a usar DeUnaGo hoy</p>
+
+                  <input
+                    className="input"
+                    placeholder="Nombre"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+
+                  <input
+                    className="input"
+                    placeholder="Teléfono"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+
+                  <input
+                    className="input"
+                    type="password"
+                    placeholder="Contraseña"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+
+                  <select
+                    className="input"
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                  >
+                    <option value="CLIENT">Cliente</option>
+                    <option value="RUNNER">Mandadero</option>
+                  </select>
+
+                  <button onClick={register} className="button button-primary auth-main-btn">
+                    Crear cuenta
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         )}
 
