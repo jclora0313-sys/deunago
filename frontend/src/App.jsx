@@ -828,33 +828,33 @@ function App() {
 
             {user.status === "APPROVED" && (
               <>
-                <div className="button-group">
+                <div className="runner-actions">
                   <button
                     onClick={cargarMandados}
                     className="button button-primary"
                   >
-                    Disponibles
+                    📦 Ver disponibles
                   </button>
 
                   <button
                     onClick={cargarMisMandados}
                     className="button button-primary"
                   >
-                    Mis mandados
+                    🛵 Mis mandados
                   </button>
 
                   <button
                     onClick={cargarGanancias}
                     className="button button-success"
                   >
-                    Ganancias
+                    💰 Ver ganancias
                   </button>
                 </div>
 
                 {trackingTaskId && (
-                  <div className="task-card">
-                    <h3>📡 Tracking activo</h3>
-                    <p>Mandado #{trackingTaskId}</p>
+                  <div className="runner-highlight">
+                    <div className="tracking-live">Tracking activo</div>
+                    <h2>📡 Mandado #{trackingTaskId}</h2>
 
                     <button
                       onClick={detenerTrackingRunner}
@@ -866,25 +866,48 @@ function App() {
                 )}
 
                 {earnings && (
-                  <div className="task-card">
+                  <div className="runner-highlight">
                     <h2>💰 Ganancias</h2>
-                    <p>Total ganado: RD${earnings.totalEarnings}</p>
-                    <p>Mandados completados: {earnings.completedCount}</p>
+
+                    <div className="runner-stats-grid">
+                      <div className="runner-stat-card">
+                        <p className="runner-stat-label">Total ganado</p>
+                        <p className="runner-stat-value">
+                          RD${earnings.totalEarnings}
+                        </p>
+                      </div>
+
+                      <div className="runner-stat-card">
+                        <p className="runner-stat-label">Mandados completados</p>
+                        <p className="runner-stat-value">
+                          {earnings.completedCount}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
 
-                <h2>📦 Disponibles</h2>
+                <h2 className="runner-section-title">📦 Disponibles</h2>
+
+                {tasks.length === 0 && (
+                  <p className="empty">No hay mandados disponibles cargados.</p>
+                )}
 
                 {tasks.map((task) => (
-                  <div key={task.id} className="task-card">
+                  <div key={task.id} className="runner-task-card">
                     <div className={getBadgeClass(task.status)}>
                       {getStatusText(task.status)}
                     </div>
 
                     <h3>{task.description}</h3>
 
-                    <p>Distancia: {task.distanceKm} km</p>
-                    <p>Precio estimado: RD${task.estimatedPrice}</p>
+                    <p className="runner-distance">
+                      Distancia: {task.distanceKm} km
+                    </p>
+
+                    <p className="runner-price">
+                      RD${task.estimatedPrice}
+                    </p>
 
                     <MapView
                       pickupLat={task.pickupLat}
@@ -895,27 +918,38 @@ function App() {
                       runnerLng={task.runnerLng}
                     />
 
-                    <button
-                      onClick={() => aceptarMandado(task.id)}
-                      className="button button-success"
-                    >
-                      Aceptar
-                    </button>
+                    <div className="runner-actions">
+                      <button
+                        onClick={() => aceptarMandado(task.id)}
+                        className="button button-success"
+                      >
+                        Aceptar mandado
+                      </button>
+                    </div>
                   </div>
                 ))}
 
-                <h2>🛵 Mis mandados</h2>
+                <h2 className="runner-section-title">🛵 Mis mandados</h2>
+
+                {myTasks.length === 0 && (
+                  <p className="empty">No tienes mandados asignados cargados.</p>
+                )}
 
                 {myTasks.map((task) => (
-                  <div key={task.id} className="task-card">
+                  <div key={task.id} className="runner-task-card">
                     <div className={getBadgeClass(task.status)}>
                       {getStatusText(task.status)}
                     </div>
 
                     <h3>{task.description}</h3>
 
-                    <p>Distancia: {task.distanceKm} km</p>
-                    <p>Precio estimado: RD${task.estimatedPrice}</p>
+                    <p className="runner-distance">
+                      Distancia: {task.distanceKm} km
+                    </p>
+
+                    <p className="runner-price">
+                      RD${task.estimatedPrice}
+                    </p>
 
                     <MapView
                       pickupLat={task.pickupLat}
@@ -936,7 +970,7 @@ function App() {
                     )}
 
                     {isActiveRunnerTask(task.status) && (
-                      <>
+                      <div className="runner-actions">
                         {task.status === "ACCEPTED" && (
                           <button
                             onClick={() => marcarRecogido(task.id)}
@@ -968,7 +1002,7 @@ function App() {
                           onClick={() => enviarUbicacionRunner(task.id)}
                           className="button button-success"
                         >
-                          📍 Enviar mi ubicación
+                          📍 Enviar ubicación
                         </button>
 
                         {trackingTaskId === task.id ? (
@@ -983,10 +1017,10 @@ function App() {
                             onClick={() => iniciarTrackingRunner(task.id)}
                             className="button button-success"
                           >
-                            📡 Iniciar tracking automático
+                            📡 Iniciar tracking
                           </button>
                         )}
-                      </>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -996,68 +1030,163 @@ function App() {
         )}
 
         {user?.role === "ADMIN" && (
-          <div className="card">
-            <h2 className="card-title">👑 Panel Admin</h2>
+          <div className="admin-dashboard">
+            <div className="admin-hero">
+              <h2>👑 Panel Administrativo</h2>
 
-            <div className="button-group">
-              <button onClick={cargarUsuarios} className="button button-primary">
-                Cargar usuarios
-              </button>
+              <p>
+                Administra usuarios, runners, mandados y estadísticas en tiempo
+                real desde DeUnaGo.
+              </p>
 
-              <button
-                onClick={cargarEstadisticasAdmin}
-                className="button button-success"
-              >
-                Ver estadísticas
-              </button>
+              <div className="admin-actions">
+                <button onClick={cargarUsuarios} className="button button-primary">
+                  👥 Cargar usuarios
+                </button>
+
+                <button
+                  onClick={cargarEstadisticasAdmin}
+                  className="button button-success"
+                >
+                  📊 Ver estadísticas
+                </button>
+              </div>
             </div>
 
             {adminStats && (
-              <div className="task-card">
-                <h2>📊 Estadísticas</h2>
+              <div className="card">
+                <h2 className="admin-section-title">📊 Estadísticas generales</h2>
 
-                <h3>Usuarios</h3>
-                <p>Total usuarios: {adminStats.users.totalUsers}</p>
-                <p>Clientes: {adminStats.users.totalClients}</p>
-                <p>Mandaderos: {adminStats.users.totalRunners}</p>
-                <p>Admins: {adminStats.users.totalAdmins}</p>
-                <p>Runners pendientes: {adminStats.users.pendingRunners}</p>
-                <p>Runners aprobados: {adminStats.users.approvedRunners}</p>
+                <div className="admin-stats-grid">
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Usuarios totales</p>
+                    <p className="admin-stat-value">
+                      {adminStats.users.totalUsers}
+                    </p>
+                  </div>
 
-                <h3>Mandados</h3>
-                <p>Total mandados: {adminStats.tasks.totalTasks}</p>
-                <p>Abiertos: {adminStats.tasks.openTasks}</p>
-                <p>Aceptados: {adminStats.tasks.acceptedTasks}</p>
-                <p>Recogidos: {adminStats.tasks.pickedUpTasks}</p>
-                <p>En camino: {adminStats.tasks.onTheWayTasks}</p>
-                <p>Entregados: {adminStats.tasks.deliveredTasks}</p>
-                <p>Cancelados: {adminStats.tasks.cancelledTasks}</p>
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Clientes</p>
+                    <p className="admin-stat-value">
+                      {adminStats.users.totalClients}
+                    </p>
+                  </div>
 
-                <h3>Dinero</h3>
-                <p>
-                  Ingresos estimados entregados: RD$
-                  {adminStats.money.estimatedRevenue}
-                </p>
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Mandaderos</p>
+                    <p className="admin-stat-value">
+                      {adminStats.users.totalRunners}
+                    </p>
+                  </div>
+
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Admins</p>
+                    <p className="admin-stat-value">
+                      {adminStats.users.totalAdmins}
+                    </p>
+                  </div>
+
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Runners pendientes</p>
+                    <p className="admin-stat-value">
+                      {adminStats.users.pendingRunners}
+                    </p>
+                  </div>
+
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Runners aprobados</p>
+                    <p className="admin-stat-value">
+                      {adminStats.users.approvedRunners}
+                    </p>
+                  </div>
+
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Mandados totales</p>
+                    <p className="admin-stat-value">
+                      {adminStats.tasks.totalTasks}
+                    </p>
+                  </div>
+
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Abiertos</p>
+                    <p className="admin-stat-value">
+                      {adminStats.tasks.openTasks}
+                    </p>
+                  </div>
+
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Aceptados</p>
+                    <p className="admin-stat-value">
+                      {adminStats.tasks.acceptedTasks}
+                    </p>
+                  </div>
+
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Recogidos</p>
+                    <p className="admin-stat-value">
+                      {adminStats.tasks.pickedUpTasks}
+                    </p>
+                  </div>
+
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">En camino</p>
+                    <p className="admin-stat-value">
+                      {adminStats.tasks.onTheWayTasks}
+                    </p>
+                  </div>
+
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Entregados</p>
+                    <p className="admin-stat-value">
+                      {adminStats.tasks.deliveredTasks}
+                    </p>
+                  </div>
+
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Cancelados</p>
+                    <p className="admin-stat-value">
+                      {adminStats.tasks.cancelledTasks}
+                    </p>
+                  </div>
+
+                  <div className="admin-stat-card">
+                    <p className="admin-stat-label">Ingresos estimados</p>
+                    <p className="admin-stat-value">
+                      RD${adminStats.money.estimatedRevenue}
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
 
-            {users.map((u) => (
-              <div key={u.id} className="task-card">
-                <h3>{u.name}</h3>
+            <div className="card">
+              <h2 className="admin-section-title">👥 Usuarios</h2>
 
-                <p>{u.phone}</p>
-                <p>{u.role} • {u.status}</p>
+              {users.length === 0 && (
+                <p className="empty">No hay usuarios cargados.</p>
+              )}
 
-                {u.role === "RUNNER" && u.status === "PENDING" && (
-                  <button
-                    onClick={() => aprobarRunner(u.id)}
-                    className="button button-success"
-                  >
-                    Aprobar runner
-                  </button>
-                )}
-              </div>
-            ))}
+              {users.map((u) => (
+                <div key={u.id} className="admin-user-card">
+                  <div className="admin-pill">{u.role}</div>
+
+                  <h3>{u.name}</h3>
+
+                  <p className="admin-user-meta">{u.phone}</p>
+
+                  <p className="admin-user-meta">Estado: {u.status}</p>
+
+                  {u.role === "RUNNER" && u.status === "PENDING" && (
+                    <button
+                      onClick={() => aprobarRunner(u.id)}
+                      className="button button-success"
+                    >
+                      ✅ Aprobar runner
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
