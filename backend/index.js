@@ -13,7 +13,7 @@ const prisma = new PrismaClient();
 
 const server = http.createServer(app);
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+const FRONTEND_URL = process.env.FRONTEND_URL || "*";
 const JWT_SECRET = process.env.JWT_SECRET || "mi_clave_secreta";
 
 const io = new Server(server, {
@@ -80,6 +80,42 @@ async function createNotification(userId, message) {
   return notification;
 }
 
+async function getRunnerOrFail(runnerId) {
+  const runner = await prisma.user.findUnique({
+    where: { id: runnerId },
+  });
+
+  if (!runner) {
+    throw new Error("Runner no encontrado");
+  }
+
+  if (runner.role !== "RUNNER") {
+    throw new Error("Este usuario no es mandadero");
+  }
+
+  return runner;
+}
+
+function validateRunnerReady(runner) {
+  if (runner.status !== "APPROVED") {
+    return "Tu cuenta de mandadero todavía no está aprobada";
+  }
+
+  if (!runner.identificationValid) {
+    return "Tu identificación todavía no ha sido validada";
+  }
+
+  if (!runner.licenseValid) {
+    return "Tu licencia todavía no ha sido validada";
+  }
+
+  if (!runner.isAvailable) {
+    return "Debes ponerte disponible para aceptar mandados";
+  }
+
+  return null;
+}
+
 async function updateTaskStatus(taskId, runnerId, nextStatus) {
   const task = await prisma.task.findUnique({
     where: { id: taskId },
@@ -105,6 +141,8 @@ async function updateTaskStatus(taskId, runnerId, nextStatus) {
 
   return { task, updatedTask };
 }
+
+// AUTH
 
 app.post("/auth/register", async (req, res) => {
   try {
@@ -143,6 +181,9 @@ app.post("/auth/register", async (req, res) => {
         password: hashedPassword,
         role,
         status: role === "RUNNER" ? "PENDING" : "ACTIVE",
+        isAvailable: false,
+        identificationValid: false,
+        licenseValid: false,
       },
     });
 
@@ -154,6 +195,9 @@ app.post("/auth/register", async (req, res) => {
         phone: user.phone,
         role: user.role,
         status: user.status,
+        isAvailable: user.isAvailable,
+        identificationValid: user.identificationValid,
+        licenseValid: user.licenseValid,
       },
     });
   } catch (error) {
@@ -208,6 +252,9 @@ app.post("/auth/login", async (req, res) => {
         phone: user.phone,
         role: user.role,
         status: user.status,
+        isAvailable: user.isAvailable,
+        identificationValid: user.identificationValid,
+        licenseValid: user.licenseValid,
       },
     });
   } catch (error) {
@@ -215,6 +262,8 @@ app.post("/auth/login", async (req, res) => {
     res.status(500).json({ message: "Error en login" });
   }
 });
+
+// NOTIFICATIONS
 
 app.get("/notifications", authMiddleware, async (req, res) => {
   const notifications = await prisma.notification.findMany({
@@ -257,6 +306,8 @@ app.patch("/notifications/:id/read", authMiddleware, async (req, res) => {
   }
 });
 
+// ADMIN
+
 app.get("/admin/users", authMiddleware, requireRole("ADMIN"), async (req, res) => {
   const users = await prisma.user.findMany({
     select: {
@@ -265,6 +316,12 @@ app.get("/admin/users", authMiddleware, requireRole("ADMIN"), async (req, res) =
       phone: true,
       role: true,
       status: true,
+      isAvailable: true,
+      identificationValid: true,
+      licenseValid: true,
+    },
+    orderBy: {
+      id: "asc",
     },
   });
 
@@ -289,6 +346,18 @@ app.get("/admin/stats", authMiddleware, requireRole("ADMIN"), async (req, res) =
       (user) => user.role === "RUNNER" && user.status === "APPROVED"
     ).length;
 
+    const availableRunners = users.filter(
+      (user) => user.role === "RUNNER" && user.isAvailable
+    ).length;
+
+    const runnersWithValidId = users.filter(
+      (user) => user.role === "RUNNER" && user.identificationValid
+    ).length;
+
+    const runnersWithValidLicense = users.filter(
+      (user) => user.role === "RUNNER" && user.licenseValid
+    ).length;
+
     const totalTasks = tasks.length;
     const openTasks = tasks.filter((task) => task.status === "OPEN").length;
     const acceptedTasks = tasks.filter((task) => task.status === "ACCEPTED").length;
@@ -309,6 +378,9 @@ app.get("/admin/stats", authMiddleware, requireRole("ADMIN"), async (req, res) =
         totalAdmins,
         pendingRunners,
         approvedRunners,
+        availableRunners,
+        runnersWithValidId,
+        runnersWithValidLicense,
       },
       tasks: {
         totalTasks,
@@ -354,7 +426,7 @@ app.patch("/admin/users/:id/approve", authMiddleware, requireRole("ADMIN"), asyn
 
     await createNotification(
       updatedUser.id,
-      "Tu cuenta de mandadero fue aprobada. Ya puedes aceptar mandados."
+      "Tu cuenta de mandadero fue aprobada. Ahora falta validar identificación y licencia si aún no están validadas."
     );
 
     res.json({
@@ -363,12 +435,133 @@ app.patch("/admin/users/:id/approve", authMiddleware, requireRole("ADMIN"), asyn
       phone: updatedUser.phone,
       role: updatedUser.role,
       status: updatedUser.status,
+      isAvailable: updatedUser.isAvailable,
+      identificationValid: updatedUser.identificationValid,
+      licenseValid: updatedUser.licenseValid,
     });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error aprobando runner" });
   }
 });
+
+app.patch("/admin/users/:id/validate-identification", authMiddleware, requireRole("ADMIN"), async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+
+    const runner = await getRunnerOrFail(userId);
+
+    const updatedUser = await prisma.user.update({
+      where: { id: runner.id },
+      data: { identificationValid: true },
+    });
+
+    await createNotification(
+      updatedUser.id,
+      "Tu identificación fue validada por el administrador."
+    );
+
+    res.json({
+      id: updatedUser.id,
+      name: updatedUser.name,
+      phone: updatedUser.phone,
+      role: updatedUser.role,
+      status: updatedUser.status,
+      isAvailable: updatedUser.isAvailable,
+      identificationValid: updatedUser.identificationValid,
+      licenseValid: updatedUser.licenseValid,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.message || "Error validando identificación" });
+  }
+});
+
+app.patch("/admin/users/:id/validate-license", authMiddleware, requireRole("ADMIN"), async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+
+    const runner = await getRunnerOrFail(userId);
+
+    const updatedUser = await prisma.user.update({
+      where: { id: runner.id },
+      data: { licenseValid: true },
+    });
+
+    await createNotification(
+      updatedUser.id,
+      "Tu licencia de conducir fue validada por el administrador."
+    );
+
+    res.json({
+      id: updatedUser.id,
+      name: updatedUser.name,
+      phone: updatedUser.phone,
+      role: updatedUser.role,
+      status: updatedUser.status,
+      isAvailable: updatedUser.isAvailable,
+      identificationValid: updatedUser.identificationValid,
+      licenseValid: updatedUser.licenseValid,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.message || "Error validando licencia" });
+  }
+});
+
+// RUNNER PROFILE
+
+app.patch("/runners/availability", authMiddleware, requireRole("RUNNER"), async (req, res) => {
+  try {
+    const { isAvailable } = req.body;
+
+    if (typeof isAvailable !== "boolean") {
+      return res.status(400).json({
+        message: "isAvailable debe ser true o false",
+      });
+    }
+
+    const runner = await prisma.user.findUnique({
+      where: { id: req.user.id },
+    });
+
+    if (!runner) {
+      return res.status(404).json({ message: "Runner no encontrado" });
+    }
+
+    if (isAvailable) {
+      const problem = validateRunnerReady({
+        ...runner,
+        isAvailable: true,
+      });
+
+      if (problem) {
+        return res.status(400).json({ message: problem });
+      }
+    }
+
+    const updatedRunner = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { isAvailable },
+    });
+
+    res.json({
+      id: updatedRunner.id,
+      name: updatedRunner.name,
+      phone: updatedRunner.phone,
+      role: updatedRunner.role,
+      status: updatedRunner.status,
+      isAvailable: updatedRunner.isAvailable,
+      identificationValid: updatedRunner.identificationValid,
+      licenseValid: updatedRunner.licenseValid,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error actualizando disponibilidad" });
+  }
+});
+
+// TASKS CLIENT
 
 app.post("/tasks", authMiddleware, requireRole("CLIENT"), async (req, res) => {
   try {
@@ -413,6 +606,9 @@ app.get("/tasks/client/my", authMiddleware, requireRole("CLIENT"), async (req, r
   const tasks = await prisma.task.findMany({
     where: {
       clientId: req.user.id,
+    },
+    orderBy: {
+      id: "desc",
     },
   });
 
@@ -522,21 +718,30 @@ app.patch("/tasks/:id/rate", authMiddleware, requireRole("CLIENT"), async (req, 
   }
 });
 
+// TASKS RUNNER
+
 app.get("/tasks/available", authMiddleware, requireRole("RUNNER"), async (req, res) => {
   const runner = await prisma.user.findUnique({
     where: { id: req.user.id },
   });
 
-  if (!runner || runner.status !== "APPROVED") {
-    return res.status(403).json({
-      message: "Tu cuenta de mandadero todavía no está aprobada",
-    });
+  if (!runner) {
+    return res.status(404).json({ message: "Runner no encontrado" });
+  }
+
+  const problem = validateRunnerReady(runner);
+
+  if (problem) {
+    return res.status(403).json({ message: problem });
   }
 
   const tasks = await prisma.task.findMany({
     where: {
       status: "OPEN",
       runnerId: null,
+    },
+    orderBy: {
+      id: "desc",
     },
   });
 
@@ -551,8 +756,14 @@ app.patch("/tasks/:id/accept", authMiddleware, requireRole("RUNNER"), async (req
       where: { id: req.user.id },
     });
 
-    if (!runner || runner.status !== "APPROVED") {
-      return res.status(403).json({ message: "Runner no aprobado" });
+    if (!runner) {
+      return res.status(404).json({ message: "Runner no encontrado" });
+    }
+
+    const problem = validateRunnerReady(runner);
+
+    if (problem) {
+      return res.status(403).json({ message: problem });
     }
 
     const task = await prisma.task.findUnique({
@@ -663,6 +874,9 @@ app.get("/tasks/my", authMiddleware, requireRole("RUNNER"), async (req, res) => 
     where: {
       runnerId: req.user.id,
     },
+    orderBy: {
+      id: "desc",
+    },
   });
 
   res.json(tasks);
@@ -672,10 +886,7 @@ app.get("/runners/earnings", authMiddleware, requireRole("RUNNER"), async (req, 
   const completedTasks = await prisma.task.findMany({
     where: {
       runnerId: req.user.id,
-      OR: [
-        { status: "DELIVERED" },
-        { status: "COMPLETED" },
-      ],
+      OR: [{ status: "DELIVERED" }, { status: "COMPLETED" }],
     },
   });
 
@@ -737,28 +948,7 @@ app.patch("/tasks/:id/runner-location", authMiddleware, requireRole("RUNNER"), a
   }
 });
 
-// RUTA VIEJA: la dejamos para compatibilidad
-app.patch("/tasks/:id/complete", authMiddleware, requireRole("RUNNER"), async (req, res) => {
-  try {
-    const taskId = Number(req.params.id);
-
-    const { task, updatedTask } = await updateTaskStatus(
-      taskId,
-      req.user.id,
-      "DELIVERED"
-    );
-
-    await createNotification(
-      task.clientId,
-      `Tu mandado "${task.description}" fue entregado. Ya puedes calificar al mandadero.`
-    );
-
-    res.json(updatedTask);
-  } catch (error) {
-    console.log(error);
-    res.status(400).json({ message: error.message || "Error entregando mandado" });
-  }
-});
+// CHAT
 
 app.get("/tasks/:id/messages", authMiddleware, async (req, res) => {
   try {
@@ -833,6 +1023,30 @@ app.post("/tasks/:id/messages", authMiddleware, async (req, res) => {
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error enviando mensaje" });
+  }
+});
+
+// OLD COMPATIBILITY ROUTE
+
+app.patch("/tasks/:id/complete", authMiddleware, requireRole("RUNNER"), async (req, res) => {
+  try {
+    const taskId = Number(req.params.id);
+
+    const { task, updatedTask } = await updateTaskStatus(
+      taskId,
+      req.user.id,
+      "DELIVERED"
+    );
+
+    await createNotification(
+      task.clientId,
+      `Tu mandado "${task.description}" fue entregado. Ya puedes calificar al mandadero.`
+    );
+
+    res.json(updatedTask);
+  } catch (error) {
+    console.log(error);
+    res.status(400).json({ message: error.message || "Error entregando mandado" });
   }
 });
 
