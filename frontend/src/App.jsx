@@ -375,8 +375,12 @@ function App() {
   };
 
   const cargarMandados = async () => {
-    const res = await axios.get(`${API_URL}/tasks/available`, getAuthHeaders());
-    setTasks(res.data);
+    try {
+      const res = await axios.get(`${API_URL}/tasks/available`, getAuthHeaders());
+      setTasks(res.data);
+    } catch (error) {
+      alert(error.response?.data?.message || "No puedes ver mandados disponibles todavía");
+    }
   };
 
   const cargarMisMandados = async () => {
@@ -390,15 +394,73 @@ function App() {
   };
 
   const aceptarMandado = async (taskId) => {
-    await axios.patch(
-      `${API_URL}/tasks/${taskId}/accept`,
-      {},
-      getAuthHeaders()
-    );
+    try {
+      await axios.patch(
+        `${API_URL}/tasks/${taskId}/accept`,
+        {},
+        getAuthHeaders()
+      );
 
-    cargarMandados();
-    cargarMisMandados();
-    cargarNotificaciones();
+      cargarMandados();
+      cargarMisMandados();
+      cargarNotificaciones();
+    } catch (error) {
+      alert(error.response?.data?.message || "No puedes aceptar este mandado");
+    }
+  };
+
+  const actualizarDisponibilidadRunner = async (isAvailable) => {
+    try {
+      const res = await axios.patch(
+        `${API_URL}/runners/availability`,
+        { isAvailable },
+        getAuthHeaders()
+      );
+
+      const updatedUser = {
+        ...user,
+        ...res.data,
+      };
+
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      alert(isAvailable ? "Ahora estás disponible" : "Ahora no estás disponible");
+      window.location.reload();
+    } catch (error) {
+      alert(error.response?.data?.message || "Error actualizando disponibilidad");
+    }
+  };
+
+  const validarIdentificacionRunner = async (userId) => {
+    try {
+      await axios.patch(
+        `${API_URL}/admin/users/${userId}/validate-identification`,
+        {},
+        getAuthHeaders()
+      );
+
+      alert("Identificación validada");
+      cargarUsuarios();
+      cargarEstadisticasAdmin();
+    } catch (error) {
+      alert(error.response?.data?.message || "Error validando identificación");
+    }
+  };
+
+  const validarLicenciaRunner = async (userId) => {
+    try {
+      await axios.patch(
+        `${API_URL}/admin/users/${userId}/validate-license`,
+        {},
+        getAuthHeaders()
+      );
+
+      alert("Licencia validada");
+      cargarUsuarios();
+      cargarEstadisticasAdmin();
+    } catch (error) {
+      alert(error.response?.data?.message || "Error validando licencia");
+    }
   };
 
   const marcarRecogido = async (taskId) => {
@@ -751,54 +813,17 @@ function App() {
               </button>
 
               <div className="filters-bar">
-                <button
-                  onClick={() => setClientFilter("ALL")}
-                  className={clientFilter === "ALL" ? "filter-btn active" : "filter-btn"}
-                >
-                  Todos
-                </button>
-
-                <button
-                  onClick={() => setClientFilter("OPEN")}
-                  className={clientFilter === "OPEN" ? "filter-btn active" : "filter-btn"}
-                >
-                  Abiertos
-                </button>
-
-                <button
-                  onClick={() => setClientFilter("ACCEPTED")}
-                  className={clientFilter === "ACCEPTED" ? "filter-btn active" : "filter-btn"}
-                >
-                  Aceptados
-                </button>
-
-                <button
-                  onClick={() => setClientFilter("PICKED_UP")}
-                  className={clientFilter === "PICKED_UP" ? "filter-btn active" : "filter-btn"}
-                >
-                  Recogidos
-                </button>
-
-                <button
-                  onClick={() => setClientFilter("ON_THE_WAY")}
-                  className={clientFilter === "ON_THE_WAY" ? "filter-btn active" : "filter-btn"}
-                >
-                  En camino
-                </button>
-
-                <button
-                  onClick={() => setClientFilter("DELIVERED")}
-                  className={clientFilter === "DELIVERED" ? "filter-btn active" : "filter-btn"}
-                >
-                  Entregados
-                </button>
-
-                <button
-                  onClick={() => setClientFilter("CANCELLED")}
-                  className={clientFilter === "CANCELLED" ? "filter-btn active" : "filter-btn"}
-                >
-                  Cancelados
-                </button>
+                {["ALL", "OPEN", "ACCEPTED", "PICKED_UP", "ON_THE_WAY", "DELIVERED", "CANCELLED"].map(
+                  (status) => (
+                    <button
+                      key={status}
+                      onClick={() => setClientFilter(status)}
+                      className={clientFilter === status ? "filter-btn active" : "filter-btn"}
+                    >
+                      {status === "ALL" ? "Todos" : getStatusText(status)}
+                    </button>
+                  )
+                )}
               </div>
 
               {filteredClientTasks.length === 0 && (
@@ -882,272 +907,234 @@ function App() {
           </>
         )}
 
- {user?.role === "RUNNER" && (
-  <div className="card">
-    <div className="runner-profile-card">
-      <h2>🛵 Perfil del mandadero</h2>
+        {user?.role === "RUNNER" && (
+          <div className="card">
+            <div className="runner-profile-card">
+              <h2>🛵 Perfil del mandadero</h2>
 
-      <div className="runner-status-grid">
-        <div className="status-box">
-          <span>Estado:</span>
+              <div className="runner-status-grid">
+                <div className="status-box">
+                  <span>Disponibilidad</span>
+                  <strong style={{ color: user.isAvailable ? "#22c55e" : "#ef4444" }}>
+                    {user.isAvailable ? "Disponible" : "No disponible"}
+                  </strong>
+                </div>
 
-          <strong
-            style={{
-              color: user.isAvailable ? "#22c55e" : "#ef4444",
-            }}
-          >
-            {user.isAvailable ? "Disponible" : "No disponible"}
-          </strong>
-        </div>
+                <div className="status-box">
+                  <span>Identificación</span>
+                  <strong style={{ color: user.identificationValid ? "#22c55e" : "#f59e0b" }}>
+                    {user.identificationValid ? "Validada" : "Pendiente"}
+                  </strong>
+                </div>
 
-        <div className="status-box">
-          <span>Identificación:</span>
+                <div className="status-box">
+                  <span>Licencia</span>
+                  <strong style={{ color: user.licenseValid ? "#22c55e" : "#f59e0b" }}>
+                    {user.licenseValid ? "Validada" : "Pendiente"}
+                  </strong>
+                </div>
+              </div>
 
-          <strong
-            style={{
-              color: user.idVerified ? "#22c55e" : "#f59e0b",
-            }}
-          >
-            {user.idVerified ? "Verificada" : "Pendiente"}
-          </strong>
-        </div>
-
-        <div className="status-box">
-          <span>Licencia:</span>
-
-          <strong
-            style={{
-              color: user.licenseVerified ? "#22c55e" : "#f59e0b",
-            }}
-          >
-            {user.licenseVerified ? "Verificada" : "Pendiente"}
-          </strong>
-        </div>
-      </div>
-
-      <button
-        className={
-          user.isAvailable
-            ? "button button-danger"
-            : "button button-success"
-        }
-        onClick={async () => {
-          try {
-            await axios.patch(
-              `${API_URL}/runners/toggle-availability`,
-              {},
-              getAuthHeaders()
-            );
-
-            alert("Disponibilidad actualizada");
-
-            const updatedUser = {
-              ...user,
-              isAvailable: !user.isAvailable,
-            };
-
-            localStorage.setItem(
-              "user",
-              JSON.stringify(updatedUser)
-            );
-
-            window.location.reload();
-          } catch (error) {
-            alert("Error actualizando disponibilidad");
-          }
-        }}
-      >
-        {user.isAvailable
-          ? "🔴 Ponerse no disponible"
-          : "🟢 Ponerse disponible"}
-      </button>
-    </div>
-
-    {user.status !== "APPROVED" && (
-      <div className="pending-box">
-        ⏳ Esperando aprobación del administrador.
-      </div>
-    )}
-
-    {user.status === "APPROVED" && (
-      <>
-        <div className="button-group">
-          <button
-            onClick={cargarMandados}
-            className="button button-primary"
-          >
-            Disponibles
-          </button>
-
-          <button
-            onClick={cargarMisMandados}
-            className="button button-primary"
-          >
-            Mis mandados
-          </button>
-
-          <button
-            onClick={cargarGanancias}
-            className="button button-success"
-          >
-            Ganancias
-          </button>
-        </div>
-
-        {trackingTaskId && (
-          <div className="task-card">
-            <h3>📡 Tracking activo</h3>
-
-            <p>Mandado #{trackingTaskId}</p>
-
-            <button
-              onClick={detenerTrackingRunner}
-              className="button button-danger"
-            >
-              Detener tracking
-            </button>
-          </div>
-        )}
-
-        {earnings && (
-          <div className="task-card">
-            <h2>💰 Ganancias</h2>
-
-            <p>Total ganado: RD${earnings.totalEarnings}</p>
-
-            <p>
-              Mandados completados: {earnings.completedCount}
-            </p>
-          </div>
-        )}
-
-        <h2>📦 Disponibles</h2>
-
-        {tasks.map((task) => (
-          <div key={task.id} className="task-card">
-            <div className={getBadgeClass(task.status)}>
-              {getStatusText(task.status)}
-            </div>
-
-            <h3>{task.description}</h3>
-
-            <p>Distancia: {task.distanceKm} km</p>
-
-            <p>
-              Precio estimado: RD${task.estimatedPrice}
-            </p>
-
-            <MapView
-              pickupLat={task.pickupLat}
-              pickupLng={task.pickupLng}
-              dropoffLat={task.dropoffLat}
-              dropoffLng={task.dropoffLng}
-              runnerLat={task.runnerLat}
-              runnerLng={task.runnerLng}
-            />
-
-            <button
-              onClick={() => aceptarMandado(task.id)}
-              className="button button-success"
-            >
-              Aceptar
-            </button>
-          </div>
-        ))}
-
-        <h2>🛵 Mis mandados</h2>
-
-        {myTasks.map((task) => (
-          <div key={task.id} className="task-card">
-            <div className={getBadgeClass(task.status)}>
-              {getStatusText(task.status)}
-            </div>
-
-            <h3>{task.description}</h3>
-
-            <p>Distancia: {task.distanceKm} km</p>
-
-            <p>
-              Precio estimado: RD${task.estimatedPrice}
-            </p>
-
-            <MapView
-              pickupLat={task.pickupLat}
-              pickupLng={task.pickupLng}
-              dropoffLat={task.dropoffLat}
-              dropoffLng={task.dropoffLng}
-              runnerLat={task.runnerLat}
-              runnerLng={task.runnerLng}
-            />
-
-            {canChat(task) && (
               <button
-                onClick={() => abrirChat(task.id)}
-                className="button button-primary"
+                className={user.isAvailable ? "button button-danger" : "button button-success"}
+                onClick={() => actualizarDisponibilidadRunner(!user.isAvailable)}
               >
-                💬 Abrir chat
+                {user.isAvailable ? "🔴 Ponerse no disponible" : "🟢 Ponerse disponible"}
               </button>
+            </div>
+
+            {user.status !== "APPROVED" && (
+              <div className="pending-box">
+                ⏳ Esperando aprobación del administrador.
+              </div>
             )}
 
-            {isActiveRunnerTask(task.status) && (
+            {user.status === "APPROVED" && (
               <>
-                {task.status === "ACCEPTED" && (
-                  <button
-                    onClick={() => marcarRecogido(task.id)}
-                    className="button button-blue"
-                  >
-                    📦 Marcar recogido
+                <div className="runner-actions">
+                  <button onClick={cargarMandados} className="button button-primary">
+                    📦 Ver disponibles
                   </button>
+
+                  <button onClick={cargarMisMandados} className="button button-primary">
+                    🛵 Mis mandados
+                  </button>
+
+                  <button onClick={cargarGanancias} className="button button-success">
+                    💰 Ver ganancias
+                  </button>
+                </div>
+
+                {trackingTaskId && (
+                  <div className="runner-highlight">
+                    <div className="tracking-live">Tracking activo</div>
+                    <h2>📡 Mandado #{trackingTaskId}</h2>
+
+                    <button onClick={detenerTrackingRunner} className="button button-danger">
+                      Detener tracking
+                    </button>
+                  </div>
                 )}
 
-                {task.status === "PICKED_UP" && (
-                  <button
-                    onClick={() => marcarEnCamino(task.id)}
-                    className="button button-blue"
-                  >
-                    🛵 Marcar en camino
-                  </button>
+                {earnings && (
+                  <div className="runner-highlight">
+                    <h2>💰 Ganancias</h2>
+
+                    <div className="runner-stats-grid">
+                      <div className="runner-stat-card">
+                        <p className="runner-stat-label">Total ganado</p>
+                        <p className="runner-stat-value">
+                          RD${earnings.totalEarnings}
+                        </p>
+                      </div>
+
+                      <div className="runner-stat-card">
+                        <p className="runner-stat-label">Mandados completados</p>
+                        <p className="runner-stat-value">
+                          {earnings.completedCount}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 )}
 
-                {task.status === "ON_THE_WAY" && (
-                  <button
-                    onClick={() => marcarEntregado(task.id)}
-                    className="button button-blue"
-                  >
-                    ✅ Marcar entregado
-                  </button>
+                <h2 className="runner-section-title">📦 Disponibles</h2>
+
+                {tasks.length === 0 && (
+                  <p className="empty">No hay mandados disponibles cargados.</p>
                 )}
 
-                <button
-                  onClick={() => enviarUbicacionRunner(task.id)}
-                  className="button button-success"
-                >
-                  📍 Enviar mi ubicación
-                </button>
+                {tasks.map((task) => (
+                  <div key={task.id} className="runner-task-card">
+                    <div className={getBadgeClass(task.status)}>
+                      {getStatusText(task.status)}
+                    </div>
 
-                {trackingTaskId === task.id ? (
-                  <button
-                    onClick={detenerTrackingRunner}
-                    className="button button-danger"
-                  >
-                    Detener tracking
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => iniciarTrackingRunner(task.id)}
-                    className="button button-success"
-                  >
-                    📡 Iniciar tracking automático
-                  </button>
+                    <h3>{task.description}</h3>
+                    <p className="runner-distance">Distancia: {task.distanceKm} km</p>
+                    <p className="runner-price">RD${task.estimatedPrice}</p>
+
+                    <MapView
+                      pickupLat={task.pickupLat}
+                      pickupLng={task.pickupLng}
+                      dropoffLat={task.dropoffLat}
+                      dropoffLng={task.dropoffLng}
+                      runnerLat={task.runnerLat}
+                      runnerLng={task.runnerLng}
+                    />
+
+                    <div className="runner-actions">
+                      <button
+                        onClick={() => aceptarMandado(task.id)}
+                        className="button button-success"
+                      >
+                        Aceptar mandado
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <h2 className="runner-section-title">🛵 Mis mandados</h2>
+
+                <div className="filters-bar">
+                  {["ALL", "ACCEPTED", "PICKED_UP", "ON_THE_WAY", "DELIVERED"].map(
+                    (status) => (
+                      <button
+                        key={status}
+                        onClick={() => setRunnerFilter(status)}
+                        className={runnerFilter === status ? "filter-btn active" : "filter-btn"}
+                      >
+                        {status === "ALL" ? "Todos" : getStatusText(status)}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                {filteredRunnerTasks.length === 0 && (
+                  <p className="empty">No hay mandados con este filtro.</p>
                 )}
+
+                {filteredRunnerTasks.map((task) => (
+                  <div key={task.id} className="runner-task-card">
+                    <div className={getBadgeClass(task.status)}>
+                      {getStatusText(task.status)}
+                    </div>
+
+                    <h3>{task.description}</h3>
+                    <p className="runner-distance">Distancia: {task.distanceKm} km</p>
+                    <p className="runner-price">RD${task.estimatedPrice}</p>
+
+                    <MapView
+                      pickupLat={task.pickupLat}
+                      pickupLng={task.pickupLng}
+                      dropoffLat={task.dropoffLat}
+                      dropoffLng={task.dropoffLng}
+                      runnerLat={task.runnerLat}
+                      runnerLng={task.runnerLng}
+                    />
+
+                    {canChat(task) && (
+                      <button onClick={() => abrirChat(task.id)} className="button button-primary">
+                        💬 Abrir chat
+                      </button>
+                    )}
+
+                    {isActiveRunnerTask(task.status) && (
+                      <div className="runner-actions">
+                        {task.status === "ACCEPTED" && (
+                          <button
+                            onClick={() => marcarRecogido(task.id)}
+                            className="button button-blue"
+                          >
+                            📦 Marcar recogido
+                          </button>
+                        )}
+
+                        {task.status === "PICKED_UP" && (
+                          <button
+                            onClick={() => marcarEnCamino(task.id)}
+                            className="button button-blue"
+                          >
+                            🛵 Marcar en camino
+                          </button>
+                        )}
+
+                        {task.status === "ON_THE_WAY" && (
+                          <button
+                            onClick={() => marcarEntregado(task.id)}
+                            className="button button-blue"
+                          >
+                            ✅ Marcar entregado
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => enviarUbicacionRunner(task.id)}
+                          className="button button-success"
+                        >
+                          📍 Enviar ubicación
+                        </button>
+
+                        {trackingTaskId === task.id ? (
+                          <button onClick={detenerTrackingRunner} className="button button-danger">
+                            Detener tracking
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => iniciarTrackingRunner(task.id)}
+                            className="button button-success"
+                          >
+                            📡 Iniciar tracking
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </>
             )}
           </div>
-        ))}
-      </>
-    )}
-  </div>
-)}
+        )}
 
         {user?.role === "ADMIN" && (
           <div className="admin-dashboard">
@@ -1180,100 +1167,42 @@ function App() {
                 <div className="admin-stats-grid">
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Usuarios totales</p>
-                    <p className="admin-stat-value">
-                      {adminStats.users.totalUsers}
-                    </p>
+                    <p className="admin-stat-value">{adminStats.users.totalUsers}</p>
                   </div>
 
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Clientes</p>
-                    <p className="admin-stat-value">
-                      {adminStats.users.totalClients}
-                    </p>
+                    <p className="admin-stat-value">{adminStats.users.totalClients}</p>
                   </div>
 
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Mandaderos</p>
-                    <p className="admin-stat-value">
-                      {adminStats.users.totalRunners}
-                    </p>
+                    <p className="admin-stat-value">{adminStats.users.totalRunners}</p>
                   </div>
 
                   <div className="admin-stat-card">
-                    <p className="admin-stat-label">Admins</p>
-                    <p className="admin-stat-value">
-                      {adminStats.users.totalAdmins}
-                    </p>
+                    <p className="admin-stat-label">Runners disponibles</p>
+                    <p className="admin-stat-value">{adminStats.users.availableRunners || 0}</p>
                   </div>
 
                   <div className="admin-stat-card">
-                    <p className="admin-stat-label">Runners pendientes</p>
-                    <p className="admin-stat-value">
-                      {adminStats.users.pendingRunners}
-                    </p>
+                    <p className="admin-stat-label">ID validadas</p>
+                    <p className="admin-stat-value">{adminStats.users.runnersWithValidId || 0}</p>
                   </div>
 
                   <div className="admin-stat-card">
-                    <p className="admin-stat-label">Runners aprobados</p>
-                    <p className="admin-stat-value">
-                      {adminStats.users.approvedRunners}
-                    </p>
+                    <p className="admin-stat-label">Licencias validadas</p>
+                    <p className="admin-stat-value">{adminStats.users.runnersWithValidLicense || 0}</p>
                   </div>
 
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Mandados totales</p>
-                    <p className="admin-stat-value">
-                      {adminStats.tasks.totalTasks}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">Abiertos</p>
-                    <p className="admin-stat-value">
-                      {adminStats.tasks.openTasks}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">Aceptados</p>
-                    <p className="admin-stat-value">
-                      {adminStats.tasks.acceptedTasks}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">Recogidos</p>
-                    <p className="admin-stat-value">
-                      {adminStats.tasks.pickedUpTasks}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">En camino</p>
-                    <p className="admin-stat-value">
-                      {adminStats.tasks.onTheWayTasks}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">Entregados</p>
-                    <p className="admin-stat-value">
-                      {adminStats.tasks.deliveredTasks}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">Cancelados</p>
-                    <p className="admin-stat-value">
-                      {adminStats.tasks.cancelledTasks}
-                    </p>
+                    <p className="admin-stat-value">{adminStats.tasks.totalTasks}</p>
                   </div>
 
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Ingresos estimados</p>
-                    <p className="admin-stat-value">
-                      RD${adminStats.money.estimatedRevenue}
-                    </p>
+                    <p className="admin-stat-value">RD${adminStats.money.estimatedRevenue}</p>
                   </div>
                 </div>
               </div>
@@ -1293,16 +1222,49 @@ function App() {
                   <h3>{u.name}</h3>
 
                   <p className="admin-user-meta">{u.phone}</p>
-
                   <p className="admin-user-meta">Estado: {u.status}</p>
 
-                  {u.role === "RUNNER" && u.status === "PENDING" && (
-                    <button
-                      onClick={() => aprobarRunner(u.id)}
-                      className="button button-success"
-                    >
-                      ✅ Aprobar runner
-                    </button>
+                  {u.role === "RUNNER" && (
+                    <>
+                      <p className="admin-user-meta">
+                        Disponible: {u.isAvailable ? "Sí" : "No"}
+                      </p>
+
+                      <p className="admin-user-meta">
+                        Identificación: {u.identificationValid ? "Validada" : "Pendiente"}
+                      </p>
+
+                      <p className="admin-user-meta">
+                        Licencia: {u.licenseValid ? "Validada" : "Pendiente"}
+                      </p>
+
+                      {u.status === "PENDING" && (
+                        <button
+                          onClick={() => aprobarRunner(u.id)}
+                          className="button button-success"
+                        >
+                          ✅ Aprobar runner
+                        </button>
+                      )}
+
+                      {!u.identificationValid && (
+                        <button
+                          onClick={() => validarIdentificacionRunner(u.id)}
+                          className="button button-primary"
+                        >
+                          🪪 Validar identificación
+                        </button>
+                      )}
+
+                      {!u.licenseValid && (
+                        <button
+                          onClick={() => validarLicenciaRunner(u.id)}
+                          className="button button-primary"
+                        >
+                          🚗 Validar licencia
+                        </button>
+                      )}
+                    </>
                   )}
                 </div>
               ))}
