@@ -6,13 +6,17 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model User {
-  id       Int    @id @default(autoincrement())
-  name     String
-  phone    String
-  password String
-  role     String
-  status   String
+  id                 Int     @id @default(autoincrement())
+  name               String
+  phone              String
+  password           String
+  role               String
+  status             String
+  isAvailable        Boolean @default(false)
+  identificationValid Boolean @default(false)
+  licenseValid       Boolean @default(false)
 }
 
 model Task {
