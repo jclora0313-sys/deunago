@@ -8,15 +8,19 @@ datasource db {
 }
 
 model User {
-  id                 Int     @id @default(autoincrement())
-  name               String
-  phone              String
-  password           String
-  role               String
-  status             String
-  isAvailable        Boolean @default(false)
-  identificationValid Boolean @default(false)
-  licenseValid       Boolean @default(false)
+  id                   Int     @id @default(autoincrement())
+  name                 String
+  phone                String
+  password             String
+  role                 String
+  status               String
+  isAvailable          Boolean @default(false)
+
+  identificationValid  Boolean @default(false)
+  licenseValid         Boolean @default(false)
+
+  identificationUrl    String?
+  licenseUrl           String?
 }
 
 model Task {

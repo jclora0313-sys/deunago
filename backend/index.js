@@ -6,6 +6,9 @@ const http = require("http");
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 const { PrismaClient } = require("@prisma/client");
 
 const app = express();
@@ -16,6 +19,12 @@ const server = http.createServer(app);
 const FRONTEND_URL = process.env.FRONTEND_URL || "*";
 const JWT_SECRET = process.env.JWT_SECRET || "mi_clave_secreta";
 
+const uploadsDir = path.join(__dirname, "uploads");
+
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
+
 const io = new Server(server, {
   cors: {
     origin: FRONTEND_URL,
@@ -25,6 +34,22 @@ const io = new Server(server, {
 
 app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json());
+app.use("/uploads", express.static(uploadsDir));
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+
+  filename: (req, file, cb) => {
+    const uniqueName =
+      Date.now() + "-" + file.originalname.replace(/\s/g, "_");
+
+    cb(null, uniqueName);
+  },
+});
+
+const upload = multer({ storage });
 
 io.on("connection", (socket) => {
   console.log("Usuario conectado:", socket.id);
@@ -198,6 +223,8 @@ app.post("/auth/register", async (req, res) => {
         isAvailable: user.isAvailable,
         identificationValid: user.identificationValid,
         licenseValid: user.licenseValid,
+        identificationUrl: user.identificationUrl,
+        licenseUrl: user.licenseUrl,
       },
     });
   } catch (error) {
@@ -255,6 +282,8 @@ app.post("/auth/login", async (req, res) => {
         isAvailable: user.isAvailable,
         identificationValid: user.identificationValid,
         licenseValid: user.licenseValid,
+        identificationUrl: user.identificationUrl,
+        licenseUrl: user.licenseUrl,
       },
     });
   } catch (error) {
@@ -319,6 +348,8 @@ app.get("/admin/users", authMiddleware, requireRole("ADMIN"), async (req, res) =
       isAvailable: true,
       identificationValid: true,
       licenseValid: true,
+      identificationUrl: true,
+      licenseUrl: true,
     },
     orderBy: {
       id: "asc",
@@ -429,16 +460,7 @@ app.patch("/admin/users/:id/approve", authMiddleware, requireRole("ADMIN"), asyn
       "Tu cuenta de mandadero fue aprobada. Ahora falta validar identificación y licencia si aún no están validadas."
     );
 
-    res.json({
-      id: updatedUser.id,
-      name: updatedUser.name,
-      phone: updatedUser.phone,
-      role: updatedUser.role,
-      status: updatedUser.status,
-      isAvailable: updatedUser.isAvailable,
-      identificationValid: updatedUser.identificationValid,
-      licenseValid: updatedUser.licenseValid,
-    });
+    res.json(updatedUser);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error aprobando runner" });
@@ -451,6 +473,12 @@ app.patch("/admin/users/:id/validate-identification", authMiddleware, requireRol
 
     const runner = await getRunnerOrFail(userId);
 
+    if (!runner.identificationUrl) {
+      return res.status(400).json({
+        message: "Este runner todavía no subió identificación",
+      });
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: runner.id },
       data: { identificationValid: true },
@@ -461,16 +489,7 @@ app.patch("/admin/users/:id/validate-identification", authMiddleware, requireRol
       "Tu identificación fue validada por el administrador."
     );
 
-    res.json({
-      id: updatedUser.id,
-      name: updatedUser.name,
-      phone: updatedUser.phone,
-      role: updatedUser.role,
-      status: updatedUser.status,
-      isAvailable: updatedUser.isAvailable,
-      identificationValid: updatedUser.identificationValid,
-      licenseValid: updatedUser.licenseValid,
-    });
+    res.json(updatedUser);
   } catch (error) {
     console.log(error);
     res.status(400).json({ message: error.message || "Error validando identificación" });
@@ -483,6 +502,12 @@ app.patch("/admin/users/:id/validate-license", authMiddleware, requireRole("ADMI
 
     const runner = await getRunnerOrFail(userId);
 
+    if (!runner.licenseUrl) {
+      return res.status(400).json({
+        message: "Este runner todavía no subió licencia",
+      });
+    }
+
     const updatedUser = await prisma.user.update({
       where: { id: runner.id },
       data: { licenseValid: true },
@@ -493,16 +518,7 @@ app.patch("/admin/users/:id/validate-license", authMiddleware, requireRole("ADMI
       "Tu licencia de conducir fue validada por el administrador."
     );
 
-    res.json({
-      id: updatedUser.id,
-      name: updatedUser.name,
-      phone: updatedUser.phone,
-      role: updatedUser.role,
-      status: updatedUser.status,
-      isAvailable: updatedUser.isAvailable,
-      identificationValid: updatedUser.identificationValid,
-      licenseValid: updatedUser.licenseValid,
-    });
+    res.json(updatedUser);
   } catch (error) {
     console.log(error);
     res.status(400).json({ message: error.message || "Error validando licencia" });
@@ -510,6 +526,94 @@ app.patch("/admin/users/:id/validate-license", authMiddleware, requireRole("ADMI
 });
 
 // RUNNER PROFILE
+
+app.post(
+  "/runners/upload-identification",
+  authMiddleware,
+  requireRole("RUNNER"),
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          message: "No subiste ningún archivo",
+        });
+      }
+
+      const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+
+      const updatedRunner = await prisma.user.update({
+        where: {
+          id: req.user.id,
+        },
+        data: {
+          identificationUrl: fileUrl,
+          identificationValid: false,
+        },
+      });
+
+      await createNotification(
+        req.user.id,
+        "Tu identificación fue subida. Espera validación del administrador."
+      );
+
+      res.json({
+        message: "Identificación subida correctamente",
+        user: updatedRunner,
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        message: "Error subiendo identificación",
+      });
+    }
+  }
+);
+
+app.post(
+  "/runners/upload-license",
+  authMiddleware,
+  requireRole("RUNNER"),
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({
+          message: "No subiste ningún archivo",
+        });
+      }
+
+      const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+
+      const updatedRunner = await prisma.user.update({
+        where: {
+          id: req.user.id,
+        },
+        data: {
+          licenseUrl: fileUrl,
+          licenseValid: false,
+        },
+      });
+
+      await createNotification(
+        req.user.id,
+        "Tu licencia fue subida. Espera validación del administrador."
+      );
+
+      res.json({
+        message: "Licencia subida correctamente",
+        user: updatedRunner,
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        message: "Error subiendo licencia",
+      });
+    }
+  }
+);
 
 app.patch("/runners/availability", authMiddleware, requireRole("RUNNER"), async (req, res) => {
   try {
@@ -545,16 +649,7 @@ app.patch("/runners/availability", authMiddleware, requireRole("RUNNER"), async 
       data: { isAvailable },
     });
 
-    res.json({
-      id: updatedRunner.id,
-      name: updatedRunner.name,
-      phone: updatedRunner.phone,
-      role: updatedRunner.role,
-      status: updatedRunner.status,
-      isAvailable: updatedRunner.isAvailable,
-      identificationValid: updatedRunner.identificationValid,
-      licenseValid: updatedRunner.licenseValid,
-    });
+    res.json(updatedRunner);
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Error actualizando disponibilidad" });

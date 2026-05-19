@@ -46,9 +46,19 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState("");
 
+  const [identificationFile, setIdentificationFile] = useState(null);
+  const [licenseFile, setLicenseFile] = useState(null);
+
   const getAuthHeaders = () => ({
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+  const getUploadHeaders = () => ({
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+      "Content-Type": "multipart/form-data",
     },
   });
 
@@ -379,7 +389,10 @@ function App() {
       const res = await axios.get(`${API_URL}/tasks/available`, getAuthHeaders());
       setTasks(res.data);
     } catch (error) {
-      alert(error.response?.data?.message || "No puedes ver mandados disponibles todavía");
+      alert(
+        error.response?.data?.message ||
+          "No puedes ver mandados disponibles todavía"
+      );
     }
   };
 
@@ -428,6 +441,66 @@ function App() {
       window.location.reload();
     } catch (error) {
       alert(error.response?.data?.message || "Error actualizando disponibilidad");
+    }
+  };
+
+  const subirIdentificacion = async () => {
+    try {
+      if (!identificationFile) {
+        alert("Selecciona un archivo de identificación");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", identificationFile);
+
+      const res = await axios.post(
+        `${API_URL}/runners/upload-identification`,
+        formData,
+        getUploadHeaders()
+      );
+
+      const updatedUser = {
+        ...user,
+        ...res.data.user,
+      };
+
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      alert("Identificación subida correctamente. Espera validación del admin.");
+      window.location.reload();
+    } catch (error) {
+      alert(error.response?.data?.message || "Error subiendo identificación");
+    }
+  };
+
+  const subirLicencia = async () => {
+    try {
+      if (!licenseFile) {
+        alert("Selecciona un archivo de licencia");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", licenseFile);
+
+      const res = await axios.post(
+        `${API_URL}/runners/upload-license`,
+        formData,
+        getUploadHeaders()
+      );
+
+      const updatedUser = {
+        ...user,
+        ...res.data.user,
+      };
+
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+
+      alert("Licencia subida correctamente. Espera validación del admin.");
+      window.location.reload();
+    } catch (error) {
+      alert(error.response?.data?.message || "Error subiendo licencia");
     }
   };
 
@@ -628,7 +701,8 @@ function App() {
               <div className="auth-logo"></div>
               <h1>Tu mandado en minutos</h1>
               <p>
-                Pide lo que necesitas y conecta con mandaderos disponibles cerca de ti.
+                Pide lo que necesitas y conecta con mandaderos disponibles cerca
+                de ti.
               </p>
             </div>
 
@@ -643,7 +717,9 @@ function App() {
 
                 <button
                   onClick={() => setMode("register")}
-                  className={mode === "register" ? "auth-tab active" : "auth-tab"}
+                  className={
+                    mode === "register" ? "auth-tab active" : "auth-tab"
+                  }
                 >
                   Registro
                 </button>
@@ -669,7 +745,10 @@ function App() {
                     onChange={(e) => setPassword(e.target.value)}
                   />
 
-                  <button onClick={login} className="button button-primary auth-main-btn">
+                  <button
+                    onClick={login}
+                    className="button button-primary auth-main-btn"
+                  >
                     Iniciar sesión
                   </button>
                 </>
@@ -711,7 +790,10 @@ function App() {
                     <option value="RUNNER">Mandadero</option>
                   </select>
 
-                  <button onClick={register} className="button button-primary auth-main-btn">
+                  <button
+                    onClick={register}
+                    className="button button-primary auth-main-btn"
+                  >
                     Crear cuenta
                   </button>
                 </>
@@ -813,17 +895,25 @@ function App() {
               </button>
 
               <div className="filters-bar">
-                {["ALL", "OPEN", "ACCEPTED", "PICKED_UP", "ON_THE_WAY", "DELIVERED", "CANCELLED"].map(
-                  (status) => (
-                    <button
-                      key={status}
-                      onClick={() => setClientFilter(status)}
-                      className={clientFilter === status ? "filter-btn active" : "filter-btn"}
-                    >
-                      {status === "ALL" ? "Todos" : getStatusText(status)}
-                    </button>
-                  )
-                )}
+                {[
+                  "ALL",
+                  "OPEN",
+                  "ACCEPTED",
+                  "PICKED_UP",
+                  "ON_THE_WAY",
+                  "DELIVERED",
+                  "CANCELLED",
+                ].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => setClientFilter(status)}
+                    className={
+                      clientFilter === status ? "filter-btn active" : "filter-btn"
+                    }
+                  >
+                    {status === "ALL" ? "Todos" : getStatusText(status)}
+                  </button>
+                ))}
               </div>
 
               {filteredClientTasks.length === 0 && (
@@ -915,31 +1005,96 @@ function App() {
               <div className="runner-status-grid">
                 <div className="status-box">
                   <span>Disponibilidad</span>
-                  <strong style={{ color: user.isAvailable ? "#22c55e" : "#ef4444" }}>
+                  <strong
+                    style={{ color: user.isAvailable ? "#22c55e" : "#ef4444" }}
+                  >
                     {user.isAvailable ? "Disponible" : "No disponible"}
                   </strong>
                 </div>
 
                 <div className="status-box">
                   <span>Identificación</span>
-                  <strong style={{ color: user.identificationValid ? "#22c55e" : "#f59e0b" }}>
+                  <strong
+                    style={{
+                      color: user.identificationValid ? "#22c55e" : "#f59e0b",
+                    }}
+                  >
                     {user.identificationValid ? "Validada" : "Pendiente"}
                   </strong>
                 </div>
 
                 <div className="status-box">
                   <span>Licencia</span>
-                  <strong style={{ color: user.licenseValid ? "#22c55e" : "#f59e0b" }}>
+                  <strong
+                    style={{ color: user.licenseValid ? "#22c55e" : "#f59e0b" }}
+                  >
                     {user.licenseValid ? "Validada" : "Pendiente"}
                   </strong>
                 </div>
               </div>
 
               <button
-                className={user.isAvailable ? "button button-danger" : "button button-success"}
+                className={
+                  user.isAvailable ? "button button-danger" : "button button-success"
+                }
                 onClick={() => actualizarDisponibilidadRunner(!user.isAvailable)}
               >
-                {user.isAvailable ? "🔴 Ponerse no disponible" : "🟢 Ponerse disponible"}
+                {user.isAvailable
+                  ? "🔴 Ponerse no disponible"
+                  : "🟢 Ponerse disponible"}
+              </button>
+            </div>
+
+            <div className="upload-card">
+              <h3>🪪 Identificación</h3>
+
+              {user.identificationUrl && (
+                <a
+                  href={user.identificationUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="document-link"
+                >
+                  Ver identificación subida
+                </a>
+              )}
+
+              <input
+                type="file"
+                className="input"
+                onChange={(e) => setIdentificationFile(e.target.files[0])}
+              />
+
+              <button
+                onClick={subirIdentificacion}
+                className="button button-primary"
+              >
+                Subir identificación
+              </button>
+            </div>
+
+            <div className="upload-card">
+              <h3>🚗 Licencia de conducir</h3>
+
+              {user.licenseUrl && (
+                <a
+                  href={user.licenseUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="document-link"
+                >
+                  Ver licencia subida
+                </a>
+              )}
+
+              <input
+                type="file"
+                className="input"
+                onChange={(e) => setLicenseFile(e.target.files[0])}
+              />
+
+              <button onClick={subirLicencia} className="button button-primary">
+                Subir licencia
               </button>
             </div>
 
@@ -956,11 +1111,17 @@ function App() {
                     📦 Ver disponibles
                   </button>
 
-                  <button onClick={cargarMisMandados} className="button button-primary">
+                  <button
+                    onClick={cargarMisMandados}
+                    className="button button-primary"
+                  >
                     🛵 Mis mandados
                   </button>
 
-                  <button onClick={cargarGanancias} className="button button-success">
+                  <button
+                    onClick={cargarGanancias}
+                    className="button button-success"
+                  >
                     💰 Ver ganancias
                   </button>
                 </div>
@@ -970,7 +1131,10 @@ function App() {
                     <div className="tracking-live">Tracking activo</div>
                     <h2>📡 Mandado #{trackingTaskId}</h2>
 
-                    <button onClick={detenerTrackingRunner} className="button button-danger">
+                    <button
+                      onClick={detenerTrackingRunner}
+                      className="button button-danger"
+                    >
                       Detener tracking
                     </button>
                   </div>
@@ -1011,7 +1175,9 @@ function App() {
                     </div>
 
                     <h3>{task.description}</h3>
-                    <p className="runner-distance">Distancia: {task.distanceKm} km</p>
+                    <p className="runner-distance">
+                      Distancia: {task.distanceKm} km
+                    </p>
                     <p className="runner-price">RD${task.estimatedPrice}</p>
 
                     <MapView
@@ -1042,7 +1208,11 @@ function App() {
                       <button
                         key={status}
                         onClick={() => setRunnerFilter(status)}
-                        className={runnerFilter === status ? "filter-btn active" : "filter-btn"}
+                        className={
+                          runnerFilter === status
+                            ? "filter-btn active"
+                            : "filter-btn"
+                        }
                       >
                         {status === "ALL" ? "Todos" : getStatusText(status)}
                       </button>
@@ -1061,7 +1231,9 @@ function App() {
                     </div>
 
                     <h3>{task.description}</h3>
-                    <p className="runner-distance">Distancia: {task.distanceKm} km</p>
+                    <p className="runner-distance">
+                      Distancia: {task.distanceKm} km
+                    </p>
                     <p className="runner-price">RD${task.estimatedPrice}</p>
 
                     <MapView
@@ -1074,7 +1246,10 @@ function App() {
                     />
 
                     {canChat(task) && (
-                      <button onClick={() => abrirChat(task.id)} className="button button-primary">
+                      <button
+                        onClick={() => abrirChat(task.id)}
+                        className="button button-primary"
+                      >
                         💬 Abrir chat
                       </button>
                     )}
@@ -1116,7 +1291,10 @@ function App() {
                         </button>
 
                         {trackingTaskId === task.id ? (
-                          <button onClick={detenerTrackingRunner} className="button button-danger">
+                          <button
+                            onClick={detenerTrackingRunner}
+                            className="button button-danger"
+                          >
                             Detener tracking
                           </button>
                         ) : (
@@ -1142,12 +1320,15 @@ function App() {
               <h2>👑 Panel Administrativo</h2>
 
               <p>
-                Administra usuarios, runners, mandados y estadísticas en tiempo
+                Administra usuarios, runners, mandados y documentos en tiempo
                 real desde DeUnaGo.
               </p>
 
               <div className="admin-actions">
-                <button onClick={cargarUsuarios} className="button button-primary">
+                <button
+                  onClick={cargarUsuarios}
+                  className="button button-primary"
+                >
                   👥 Cargar usuarios
                 </button>
 
@@ -1162,47 +1343,65 @@ function App() {
 
             {adminStats && (
               <div className="card">
-                <h2 className="admin-section-title">📊 Estadísticas generales</h2>
+                <h2 className="admin-section-title">
+                  📊 Estadísticas generales
+                </h2>
 
                 <div className="admin-stats-grid">
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Usuarios totales</p>
-                    <p className="admin-stat-value">{adminStats.users.totalUsers}</p>
+                    <p className="admin-stat-value">
+                      {adminStats.users.totalUsers}
+                    </p>
                   </div>
 
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Clientes</p>
-                    <p className="admin-stat-value">{adminStats.users.totalClients}</p>
+                    <p className="admin-stat-value">
+                      {adminStats.users.totalClients}
+                    </p>
                   </div>
 
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Mandaderos</p>
-                    <p className="admin-stat-value">{adminStats.users.totalRunners}</p>
+                    <p className="admin-stat-value">
+                      {adminStats.users.totalRunners}
+                    </p>
                   </div>
 
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Runners disponibles</p>
-                    <p className="admin-stat-value">{adminStats.users.availableRunners || 0}</p>
+                    <p className="admin-stat-value">
+                      {adminStats.users.availableRunners || 0}
+                    </p>
                   </div>
 
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">ID validadas</p>
-                    <p className="admin-stat-value">{adminStats.users.runnersWithValidId || 0}</p>
+                    <p className="admin-stat-value">
+                      {adminStats.users.runnersWithValidId || 0}
+                    </p>
                   </div>
 
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Licencias validadas</p>
-                    <p className="admin-stat-value">{adminStats.users.runnersWithValidLicense || 0}</p>
+                    <p className="admin-stat-value">
+                      {adminStats.users.runnersWithValidLicense || 0}
+                    </p>
                   </div>
 
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Mandados totales</p>
-                    <p className="admin-stat-value">{adminStats.tasks.totalTasks}</p>
+                    <p className="admin-stat-value">
+                      {adminStats.tasks.totalTasks}
+                    </p>
                   </div>
 
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Ingresos estimados</p>
-                    <p className="admin-stat-value">RD${adminStats.money.estimatedRevenue}</p>
+                    <p className="admin-stat-value">
+                      RD${adminStats.money.estimatedRevenue}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1231,12 +1430,35 @@ function App() {
                       </p>
 
                       <p className="admin-user-meta">
-                        Identificación: {u.identificationValid ? "Validada" : "Pendiente"}
+                        Identificación:{" "}
+                        {u.identificationValid ? "Validada" : "Pendiente"}
                       </p>
 
                       <p className="admin-user-meta">
                         Licencia: {u.licenseValid ? "Validada" : "Pendiente"}
                       </p>
+
+                      {u.identificationUrl && (
+                        <a
+                          href={u.identificationUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="document-link"
+                        >
+                          🪪 Ver identificación
+                        </a>
+                      )}
+
+                      {u.licenseUrl && (
+                        <a
+                          href={u.licenseUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="document-link"
+                        >
+                          🚗 Ver licencia
+                        </a>
+                      )}
 
                       {u.status === "PENDING" && (
                         <button
