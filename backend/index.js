@@ -7,8 +7,8 @@ const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const { v2: cloudinary } = require("cloudinary");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const { PrismaClient } = require("@prisma/client");
 
 const app = express();
@@ -19,11 +19,8 @@ const server = http.createServer(app);
 const FRONTEND_URL = process.env.FRONTEND_URL || "*";
 const JWT_SECRET = process.env.JWT_SECRET || "mi_clave_secreta";
 
-const uploadsDir = path.join(__dirname, "uploads");
 
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir);
-}
+
 
 const io = new Server(server, {
   cors: {
@@ -34,18 +31,20 @@ const io = new Server(server, {
 
 app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json());
-app.use("/uploads", express.static(uploadsDir));
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
 
-  filename: (req, file, cb) => {
-    const uniqueName =
-      Date.now() + "-" + file.originalname.replace(/\s/g, "_");
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
-    cb(null, uniqueName);
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "deunago/runner-documents",
+    resource_type: "auto",
+    allowed_formats: ["jpg", "jpeg", "png", "webp", "pdf"],
   },
 });
 
@@ -540,7 +539,7 @@ app.post(
         });
       }
 
-      const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+      const fileUrl = req.file.path;
 
       const updatedRunner = await prisma.user.update({
         where: {
@@ -584,7 +583,7 @@ app.post(
         });
       }
 
-      const fileUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
+      const fileUrl = req.file.path;
 
       const updatedRunner = await prisma.user.update({
         where: {
