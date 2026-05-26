@@ -21,6 +21,7 @@ function App() {
   const [users, setUsers] = useState([]);
   const [adminStats, setAdminStats] = useState(null);
   const [adminTasks, setAdminTasks] = useState([]);
+  const [adminPaymentFilter, setAdminPaymentFilter] = useState("ALL");
 
   const [tasks, setTasks] = useState([]);
   const [myTasks, setMyTasks] = useState([]);
@@ -722,6 +723,19 @@ const marcarRunnerPagado = async (taskId) => {
     runnerFilter === "ALL"
       ? myTasks
       : myTasks.filter((task) => task.status === runnerFilter);
+
+      const filteredAdminTasks =
+  adminPaymentFilter === "ALL"
+    ? adminTasks
+    : adminPaymentFilter === "PAYMENT_PENDING"
+    ? adminTasks.filter((task) => !task.paymentStatus || task.paymentStatus === "PENDING")
+    : adminPaymentFilter === "PAYMENT_REVIEW"
+    ? adminTasks.filter((task) => task.paymentStatus === "PENDING_REVIEW")
+    : adminPaymentFilter === "PAYMENT_PAID"
+    ? adminTasks.filter((task) => task.paymentStatus === "PAID")
+    : adminPaymentFilter === "RUNNER_PENDING"
+    ? adminTasks.filter((task) => task.runnerPayoutStatus !== "PAID")
+    : adminTasks.filter((task) => task.runnerPayoutStatus === "PAID");
 
   const ChatBox = () => {
     if (!activeChatTaskId) return null;
@@ -1660,7 +1674,30 @@ const marcarRunnerPagado = async (taskId) => {
     <p className="empty">No hay mandados cargados.</p>
   )}
 
-  {adminTasks.map((task) => (
+  <div className="filters-bar">
+  {[
+    ["ALL", "Todos"],
+    ["PAYMENT_PENDING", "Pago pendiente"],
+    ["PAYMENT_REVIEW", "En revisión"],
+    ["PAYMENT_PAID", "Pago validado"],
+    ["RUNNER_PENDING", "Runner pendiente"],
+    ["RUNNER_PAID", "Runner pagado"],
+  ].map(([value, label]) => (
+    <button
+      key={value}
+      onClick={() => setAdminPaymentFilter(value)}
+      className={
+        adminPaymentFilter === value
+          ? "filter-btn active"
+          : "filter-btn"
+      }
+    >
+      {label}
+    </button>
+  ))}
+</div>
+
+  {filteredAdminTasks.map((task) => (
     <div key={task.id} className="admin-user-card">
       <div className="admin-pill">
         {task.paymentStatus || "PENDING"}
