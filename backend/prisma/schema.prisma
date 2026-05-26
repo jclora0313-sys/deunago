@@ -38,7 +38,13 @@ model Task {
   distanceKm     Float?
   estimatedPrice Float?
   rating         Int?
-  review         String?
+  review         String?  
+  deliveryProofUrl String?
+  paymentMethod   String?
+paymentStatus   String? @default("PENDING")
+paymentProofUrl String?
+platformFee     Float?
+runnerEarnings  Float?
 }
 
 model Notification {

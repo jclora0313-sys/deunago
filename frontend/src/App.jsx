@@ -20,6 +20,7 @@ function App() {
 
   const [users, setUsers] = useState([]);
   const [adminStats, setAdminStats] = useState(null);
+  const [adminTasks, setAdminTasks] = useState([]);
 
   const [tasks, setTasks] = useState([]);
   const [myTasks, setMyTasks] = useState([]);
@@ -48,6 +49,8 @@ function App() {
 
   const [identificationFile, setIdentificationFile] = useState(null);
   const [licenseFile, setLicenseFile] = useState(null);
+  const [deliveryProofFile, setDeliveryProofFile] = useState(null);
+  const [paymentProofFile, setPaymentProofFile] = useState(null);
 
   const getAuthHeaders = () => ({
     headers: {
@@ -504,6 +507,54 @@ function App() {
     }
   };
 
+  const subirComprobanteEntrega = async (taskId) => {
+  try {
+    if (!deliveryProofFile) {
+      alert("Selecciona una foto del comprobante");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", deliveryProofFile);
+
+    await axios.post(
+      `${API_URL}/tasks/${taskId}/delivery-proof`,
+      formData,
+      getUploadHeaders()
+    );
+
+    alert("Comprobante subido correctamente");
+    setDeliveryProofFile(null);
+    cargarMisMandados();
+  } catch (error) {
+    alert(error.response?.data?.message || "Error subiendo comprobante");
+  }
+};
+
+const subirComprobantePago = async (taskId) => {
+  try {
+    if (!paymentProofFile) {
+      alert("Selecciona un comprobante de pago");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", paymentProofFile);
+
+    await axios.post(
+      `${API_URL}/tasks/${taskId}/payment-proof`,
+      formData,
+      getUploadHeaders()
+    );
+
+    alert("Comprobante de pago subido correctamente");
+    setPaymentProofFile(null);
+    cargarMisMandadosCliente();
+  } catch (error) {
+    alert(error.response?.data?.message || "Error subiendo comprobante de pago");
+  }
+};
+
   const validarIdentificacionRunner = async (userId) => {
     try {
       await axios.patch(
@@ -535,6 +586,21 @@ function App() {
       alert(error.response?.data?.message || "Error validando licencia");
     }
   };
+
+  const validarPagoMandado = async (taskId) => {
+  try {
+    await axios.patch(
+      `${API_URL}/admin/tasks/${taskId}/validate-payment`,
+      {},
+      getAuthHeaders()
+    );
+
+    alert("Pago validado");
+    cargarEstadisticasAdmin();
+  } catch (error) {
+    alert(error.response?.data?.message || "Error validando pago");
+  }
+};
 
   const marcarRecogido = async (taskId) => {
     await axios.patch(`${API_URL}/tasks/${taskId}/pickup`, {}, getAuthHeaders());
@@ -575,6 +641,11 @@ function App() {
     const res = await axios.get(`${API_URL}/admin/stats`, getAuthHeaders());
     setAdminStats(res.data);
   };
+
+  const cargarMandadosAdmin = async () => {
+  const res = await axios.get(`${API_URL}/admin/tasks`, getAuthHeaders());
+  setAdminTasks(res.data);
+};
 
   const aprobarRunner = async (userId) => {
     await axios.patch(
@@ -931,6 +1002,47 @@ function App() {
                   <p>Distancia: {task.distanceKm} km</p>
                   <p>Precio estimado: RD${task.estimatedPrice}</p>
 
+                  <p>
+  Estado del pago:{" "}
+  <strong>
+    {task.paymentStatus === "PAID"
+      ? "Pagado"
+      : task.paymentStatus === "PENDING_REVIEW"
+      ? "En revisión"
+      : "Pendiente"}
+  </strong>
+</p>
+
+{task.paymentProofUrl && (
+  <a
+    href={task.paymentProofUrl}
+    target="_blank"
+    rel="noreferrer"
+    className="document-link"
+  >
+    🧾 Ver comprobante de pago
+  </a>
+)}
+
+{task.paymentStatus !== "PAID" && (
+  <div className="upload-card">
+    <h3>🧾 Subir comprobante de pago</h3>
+
+    <input
+      type="file"
+      className="input"
+      onChange={(e) => setPaymentProofFile(e.target.files[0])}
+    />
+
+    <button
+      onClick={() => subirComprobantePago(task.id)}
+      className="button button-primary"
+    >
+      Subir comprobante
+    </button>
+  </div>
+)}
+
                   <MapView
                     pickupLat={task.pickupLat}
                     pickupLng={task.pickupLng}
@@ -939,6 +1051,17 @@ function App() {
                     runnerLat={task.runnerLat}
                     runnerLng={task.runnerLng}
                   />
+
+{task.deliveryProofUrl && (
+  <a
+    href={task.deliveryProofUrl}
+    target="_blank"
+    rel="noreferrer"
+    className="document-link"
+  >
+    📸 Ver comprobante de entrega
+  </a>
+)}
 
                   {canChat(task) && (
                     <button
@@ -1189,6 +1312,16 @@ function App() {
                       runnerLng={task.runnerLng}
                     />
 
+{task.deliveryProofUrl && (
+  <a
+    href={task.deliveryProofUrl}
+    target="_blank"
+    rel="noreferrer"
+    className="document-link"
+  >
+    📸 Ver comprobante de entrega
+  </a>
+)}
                     <div className="runner-actions">
                       <button
                         onClick={() => aceptarMandado(task.id)}
@@ -1245,6 +1378,16 @@ function App() {
                       runnerLng={task.runnerLng}
                     />
 
+{task.deliveryProofUrl && (
+  <a
+    href={task.deliveryProofUrl}
+    target="_blank"
+    rel="noreferrer"
+    className="document-link"
+  >
+    📸 Ver comprobante de entrega
+  </a>
+)}
                     {canChat(task) && (
                       <button
                         onClick={() => abrirChat(task.id)}
@@ -1283,6 +1426,18 @@ function App() {
                           </button>
                         )}
 
+<input
+  type="file"
+  className="input"
+  onChange={(e) => setDeliveryProofFile(e.target.files[0])}
+/>
+
+<button
+  onClick={() => subirComprobanteEntrega(task.id)}
+  className="button button-primary"
+>
+  📸 Subir comprobante
+</button>
                         <button
                           onClick={() => enviarUbicacionRunner(task.id)}
                           className="button button-success"
@@ -1340,6 +1495,13 @@ function App() {
                 </button>
               </div>
             </div>
+
+            <button
+  onClick={cargarMandadosAdmin}
+  className="button button-primary"
+>
+  🧾 Ver pagos
+</button>
 
             {adminStats && (
               <div className="card">
@@ -1406,6 +1568,52 @@ function App() {
                 </div>
               </div>
             )}
+
+<div className="card">
+  <h2 className="admin-section-title">🧾 Pagos de mandados</h2>
+
+  {adminTasks.length === 0 && (
+    <p className="empty">No hay mandados cargados.</p>
+  )}
+
+  {adminTasks.map((task) => (
+    <div key={task.id} className="admin-user-card">
+      <div className="admin-pill">
+        {task.paymentStatus || "PENDING"}
+      </div>
+
+      <h3>{task.description}</h3>
+
+      <p className="admin-user-meta">
+        Precio: RD${task.estimatedPrice}
+      </p>
+
+      <p className="admin-user-meta">
+        Estado del mandado: {getStatusText(task.status)}
+      </p>
+
+      {task.paymentProofUrl && (
+        <a
+          href={task.paymentProofUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="document-link"
+        >
+          🧾 Ver comprobante de pago
+        </a>
+      )}
+
+      {task.paymentProofUrl && task.paymentStatus !== "PAID" && (
+        <button
+          onClick={() => validarPagoMandado(task.id)}
+          className="button button-success"
+        >
+          ✅ Validar pago
+        </button>
+      )}
+    </div>
+  ))}
+</div>
 
             <div className="card">
               <h2 className="admin-section-title">👥 Usuarios</h2>

@@ -336,6 +336,23 @@ app.patch("/notifications/:id/read", authMiddleware, async (req, res) => {
 
 // ADMIN
 
+app.get("/admin/tasks", authMiddleware, requireRole("ADMIN"), async (req, res) => {
+  try {
+    const tasks = await prisma.task.findMany({
+      orderBy: {
+        id: "desc",
+      },
+    });
+
+    res.json(tasks);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error cargando mandados admin",
+    });
+  }
+});
+
 app.get("/admin/users", authMiddleware, requireRole("ADMIN"), async (req, res) => {
   const users = await prisma.user.findMany({
     select: {
@@ -655,7 +672,100 @@ app.patch("/runners/availability", authMiddleware, requireRole("RUNNER"), async 
   }
 });
 
+app.patch(
+  "/admin/tasks/:id/validate-payment",
+  authMiddleware,
+  requireRole("ADMIN"),
+  async (req, res) => {
+    try {
+      const taskId = Number(req.params.id);
+
+      const task = await prisma.task.findUnique({
+        where: { id: taskId },
+      });
+
+      if (!task) {
+        return res.status(404).json({ message: "Mandado no existe" });
+      }
+
+      if (!task.paymentProofUrl) {
+        return res.status(400).json({
+          message: "Este mandado no tiene comprobante de pago",
+        });
+      }
+
+      const updatedTask = await prisma.task.update({
+        where: { id: taskId },
+        data: {
+          paymentStatus: "PAID",
+        },
+      });
+
+      await createNotification(
+        task.clientId,
+        `Tu pago del mandado "${task.description}" fue validado.`
+      );
+
+      res.json(updatedTask);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error validando pago",
+      });
+    }
+  }
+);
+
 // TASKS CLIENT
+
+app.post(
+  "/tasks/:id/payment-proof",
+  authMiddleware,
+  requireRole("CLIENT"),
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const taskId = Number(req.params.id);
+
+      if (!req.file) {
+        return res.status(400).json({
+          message: "No subiste ningún comprobante",
+        });
+      }
+
+      const task = await prisma.task.findUnique({
+        where: { id: taskId },
+      });
+
+      if (!task) {
+        return res.status(404).json({ message: "Mandado no existe" });
+      }
+
+      if (task.clientId !== req.user.id) {
+        return res.status(403).json({
+          message: "Este mandado no es tuyo",
+        });
+      }
+
+      const fileUrl = req.file.path;
+
+      const updatedTask = await prisma.task.update({
+        where: { id: taskId },
+        data: {
+          paymentProofUrl: fileUrl,
+          paymentStatus: "PENDING_REVIEW",
+        },
+      });
+
+      res.json(updatedTask);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error subiendo comprobante de pago",
+      });
+    }
+  }
+);
 
 app.post("/tasks", authMiddleware, requireRole("CLIENT"), async (req, res) => {
   try {
@@ -830,10 +940,11 @@ app.get("/tasks/available", authMiddleware, requireRole("RUNNER"), async (req, r
   }
 
   const tasks = await prisma.task.findMany({
-    where: {
-      status: "OPEN",
-      runnerId: null,
-    },
+  where: {
+  status: "OPEN",
+  runnerId: null,
+  paymentStatus: "PAID",
+},
     orderBy: {
       id: "desc",
     },
@@ -1041,7 +1152,61 @@ app.patch("/tasks/:id/runner-location", authMiddleware, requireRole("RUNNER"), a
     res.status(500).json({ message: "Error actualizando ubicación" });
   }
 });
+app.post(
+  "/tasks/:id/delivery-proof",
+  authMiddleware,
+  requireRole("RUNNER"),
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const taskId = Number(req.params.id);
 
+      if (!req.file) {
+        return res.status(400).json({
+          message: "No subiste ningún archivo",
+        });
+      }
+
+      const task = await prisma.task.findUnique({
+        where: { id: taskId },
+      });
+
+      if (!task) {
+        return res.status(404).json({ message: "Mandado no existe" });
+      }
+
+      if (task.runnerId !== req.user.id) {
+        return res.status(403).json({
+          message: "Este mandado no es tuyo",
+        });
+      }
+
+      const fileUrl = req.file.path;
+
+      const updatedTask = await prisma.task.update({
+        where: { id: taskId },
+        data: {
+          deliveryProofUrl: fileUrl,
+        },
+      });
+
+      await createNotification(
+        task.clientId,
+        `El mandadero subió un comprobante de entrega para: ${task.description}`
+      );
+
+      io.to(`user_${task.clientId}`).emit("taskUpdated", updatedTask);
+      io.to(`user_${req.user.id}`).emit("taskUpdated", updatedTask);
+
+      res.json(updatedTask);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error subiendo comprobante de entrega",
+      });
+    }
+  }
+);
 // CHAT
 
 app.get("/tasks/:id/messages", authMiddleware, async (req, res) => {
