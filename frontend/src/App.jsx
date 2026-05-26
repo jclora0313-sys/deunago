@@ -1681,10 +1681,6 @@ const marcarRunnerPagado = async (taskId) => {
           ✅ Validar pago
         </button>
       )}
-    </div>
-    
-  ))}
-</div>
 {task.paymentStatus === "PAID" &&
   task.runnerPayoutStatus !== "PAID" && (
     <button
@@ -1693,7 +1689,13 @@ const marcarRunnerPagado = async (taskId) => {
     >
       💸 Marcar runner pagado
     </button>
-  )}
+)}
+
+    </div>
+    
+  ))}
+</div>
+
 
             <div className="card">
               <h2 className="admin-section-title">👥 Usuarios</h2>
