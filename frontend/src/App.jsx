@@ -1001,6 +1001,8 @@ const subirComprobantePago = async (taskId) => {
 
                   <p>Distancia: {task.distanceKm} km</p>
                   <p>Precio estimado: RD${task.estimatedPrice}</p>
+                  <p>Comisión DeUnaGo: RD${task.platformFee}</p>
+<p>Ganancia runner: RD${task.runnerEarnings}</p>
 
                   <p>
   Estado del pago:{" "}
@@ -1587,6 +1589,14 @@ const subirComprobantePago = async (taskId) => {
       <p className="admin-user-meta">
         Precio: RD${task.estimatedPrice}
       </p>
+
+      <p className="admin-user-meta">
+  Comisión DeUnaGo: RD${task.platformFee}
+</p>
+
+<p className="admin-user-meta">
+  Ganancia runner: RD${task.runnerEarnings}
+</p>
 
       <p className="admin-user-meta">
         Estado del mandado: {getStatusText(task.status)}

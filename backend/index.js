@@ -796,6 +796,8 @@ app.post("/tasks", authMiddleware, requireRole("CLIENT"), async (req, res) => {
         dropoffLng,
         distanceKm,
         estimatedPrice,
+        platformFee: Number((estimatedPrice * 0.3).toFixed(2)),
+runnerEarnings: Number((estimatedPrice * 0.7).toFixed(2)),
       },
     });
 
@@ -1096,8 +1098,8 @@ app.get("/runners/earnings", authMiddleware, requireRole("RUNNER"), async (req, 
   });
 
   const totalEarnings = completedTasks.reduce((total, task) => {
-    return total + (task.estimatedPrice || 0);
-  }, 0);
+  return total + (task.runnerEarnings || 0);
+}, 0);
 
   res.json({
     totalEarnings,
