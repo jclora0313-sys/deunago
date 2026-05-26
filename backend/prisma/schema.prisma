@@ -45,6 +45,7 @@ paymentStatus   String? @default("PENDING")
 paymentProofUrl String?
 platformFee     Float?
 runnerEarnings  Float?
+runnerPayoutStatus String? @default("PENDING")
 }
 
 model Notification {

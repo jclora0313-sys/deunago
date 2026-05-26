@@ -413,9 +413,26 @@ app.get("/admin/stats", authMiddleware, requireRole("ADMIN"), async (req, res) =
     const deliveredTasks = tasks.filter((task) => task.status === "DELIVERED").length;
     const cancelledTasks = tasks.filter((task) => task.status === "CANCELLED").length;
 
-    const estimatedRevenue = tasks
-      .filter((task) => task.status === "DELIVERED" || task.status === "COMPLETED")
-      .reduce((total, task) => total + (task.estimatedPrice || 0), 0);
+    const paidTasks = tasks.filter((task) => task.paymentStatus === "PAID");
+
+const pendingPaymentTasks = tasks.filter(
+  (task) =>
+    !task.paymentStatus ||
+    task.paymentStatus === "PENDING" ||
+    task.paymentStatus === "PENDING_REVIEW"
+);
+
+const totalCollected = paidTasks.reduce((total, task) => {
+  return total + (task.estimatedPrice || 0);
+}, 0);
+
+const totalPlatformFee = paidTasks.reduce((total, task) => {
+  return total + (task.platformFee || 0);
+}, 0);
+
+const totalRunnerEarnings = paidTasks.reduce((total, task) => {
+  return total + (task.runnerEarnings || 0);
+}, 0);
 
     res.json({
       users: {
@@ -439,7 +456,12 @@ app.get("/admin/stats", authMiddleware, requireRole("ADMIN"), async (req, res) =
         cancelledTasks,
       },
       money: {
-        estimatedRevenue,
+       estimatedRevenue: totalCollected,
+totalCollected,
+totalPlatformFee,
+totalRunnerEarnings,
+paidTasksCount: paidTasks.length,
+pendingPaymentTasksCount: pendingPaymentTasks.length,
       },
     });
   } catch (error) {
@@ -540,6 +562,49 @@ app.patch("/admin/users/:id/validate-license", authMiddleware, requireRole("ADMI
     res.status(400).json({ message: error.message || "Error validando licencia" });
   }
 });
+
+app.patch(
+  "/admin/tasks/:id/pay-runner",
+  authMiddleware,
+  requireRole("ADMIN"),
+  async (req, res) => {
+    try {
+      const taskId = Number(req.params.id);
+
+      const task = await prisma.task.findUnique({
+        where: { id: taskId },
+      });
+
+      if (!task) {
+        return res.status(404).json({
+          message: "Mandado no existe",
+        });
+      }
+
+      const updatedTask = await prisma.task.update({
+        where: { id: taskId },
+        data: {
+          runnerPayoutStatus: "PAID",
+        },
+      });
+
+      if (task.runnerId) {
+        await createNotification(
+          task.runnerId,
+          `Tu pago del mandado "${task.description}" fue marcado como pagado.`
+        );
+      }
+
+      res.json(updatedTask);
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        message: "Error pagando runner",
+      });
+    }
+  }
+);
 
 // RUNNER PROFILE
 

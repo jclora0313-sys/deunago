@@ -595,6 +595,22 @@ const subirComprobantePago = async (taskId) => {
       getAuthHeaders()
     );
 
+const marcarRunnerPagado = async (taskId) => {
+  try {
+    await axios.patch(
+      `${API_URL}/admin/tasks/${taskId}/pay-runner`,
+      {},
+      getAuthHeaders()
+    );
+
+    alert("Runner marcado como pagado");
+    cargarMandadosAdmin();
+    cargarEstadisticasAdmin();
+  } catch (error) {
+    alert(error.response?.data?.message || "Error marcando pago del runner");
+  }
+};
+
     alert("Pago validado");
     cargarEstadisticasAdmin();
   } catch (error) {
@@ -1271,7 +1287,7 @@ const subirComprobantePago = async (taskId) => {
 
                     <div className="runner-stats-grid">
                       <div className="runner-stat-card">
-                        <p className="runner-stat-label">Total ganado</p>
+                        <p className="runner-stat-label">Total ganado 70%</p>
                         <p className="runner-stat-value">
                           RD${earnings.totalEarnings}
                         </p>
@@ -1304,6 +1320,13 @@ const subirComprobantePago = async (taskId) => {
                       Distancia: {task.distanceKm} km
                     </p>
                     <p className="runner-price">RD${task.estimatedPrice}</p>
+                    <p className="runner-price">
+  Tu ganancia: RD${task.runnerEarnings || 0}
+</p>
+
+<p className="runner-distance">
+  Pago: {task.paymentStatus === "PAID" ? "Validado" : "Pendiente"}
+</p>
 
                     <MapView
                       pickupLat={task.pickupLat}
@@ -1370,6 +1393,13 @@ const subirComprobantePago = async (taskId) => {
                       Distancia: {task.distanceKm} km
                     </p>
                     <p className="runner-price">RD${task.estimatedPrice}</p>
+                    <p className="runner-price">
+  Tu ganancia: RD${task.runnerEarnings || 0}
+</p>
+
+<p className="runner-distance">
+  Pago: {task.paymentStatus === "PAID" ? "Validado" : "Pendiente"}
+</p>
 
                     <MapView
                       pickupLat={task.pickupLat}
@@ -1563,6 +1593,33 @@ const subirComprobantePago = async (taskId) => {
 
                   <div className="admin-stat-card">
                     <p className="admin-stat-label">Ingresos estimados</p>
+                    <div className="admin-stat-card">
+  <p className="admin-stat-label">Comisión DeUnaGo</p>
+  <p className="admin-stat-value">
+    RD${adminStats.money.totalPlatformFee || 0}
+  </p>
+</div>
+
+<div className="admin-stat-card">
+  <p className="admin-stat-label">Ganancias runners</p>
+  <p className="admin-stat-value">
+    RD${adminStats.money.totalRunnerEarnings || 0}
+  </p>
+</div>
+
+<div className="admin-stat-card">
+  <p className="admin-stat-label">Mandados pagados</p>
+  <p className="admin-stat-value">
+    {adminStats.money.paidTasksCount || 0}
+  </p>
+</div>
+
+<div className="admin-stat-card">
+  <p className="admin-stat-label">Pagos pendientes</p>
+  <p className="admin-stat-value">
+    {adminStats.money.pendingPaymentTasksCount || 0}
+  </p>
+</div>
                     <p className="admin-stat-value">
                       RD${adminStats.money.estimatedRevenue}
                     </p>
@@ -1597,6 +1654,9 @@ const subirComprobantePago = async (taskId) => {
 <p className="admin-user-meta">
   Ganancia runner: RD${task.runnerEarnings}
 </p>
+<p className="admin-user-meta">
+  Pago al runner: {task.runnerPayoutStatus === "PAID" ? "Pagado" : "Pendiente"}
+</p>
 
       <p className="admin-user-meta">
         Estado del mandado: {getStatusText(task.status)}
@@ -1622,8 +1682,18 @@ const subirComprobantePago = async (taskId) => {
         </button>
       )}
     </div>
+    
   ))}
 </div>
+{task.paymentStatus === "PAID" &&
+  task.runnerPayoutStatus !== "PAID" && (
+    <button
+      onClick={() => marcarRunnerPagado(task.id)}
+      className="button button-success"
+    >
+      💸 Marcar runner pagado
+    </button>
+  )}
 
             <div className="card">
               <h2 className="admin-section-title">👥 Usuarios</h2>
