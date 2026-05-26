@@ -1324,6 +1324,31 @@ const marcarRunnerPagado = async (taskId) => {
   Tu ganancia: RD${task.runnerEarnings || 0}
 </p>
 
+<h3>📜 Historial de pagos</h3>
+
+{earnings.tasks?.length === 0 && (
+  <p className="empty">Aún no tienes pagos registrados.</p>
+)}
+
+{earnings.tasks?.map((task) => (
+  <div key={task.id} className="runner-task-card">
+    <h3>{task.description}</h3>
+
+    <p className="runner-price">
+      Ganancia: RD${task.runnerEarnings || 0}
+    </p>
+
+    <p className="runner-distance">
+      Estado de cobro:{" "}
+      {task.runnerPayoutStatus === "PAID" ? "Pagado" : "Pendiente"}
+    </p>
+
+    <p className="runner-distance">
+      Estado del mandado: {getStatusText(task.status)}
+    </p>
+  </div>
+))}
+
 <p className="runner-distance">
   Pago: {task.paymentStatus === "PAID" ? "Validado" : "Pendiente"}
 </p>
