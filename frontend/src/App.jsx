@@ -5,6 +5,7 @@ import "./App.css";
 import MapView from "./components/MapView";
 import SelectLocationMap from "./components/SelectLocationMap";
 
+
 const API_URL = import.meta.env.VITE_API_URL;
 const socket = io(API_URL);
 
@@ -53,12 +54,12 @@ function App() {
   const [deliveryProofFile, setDeliveryProofFile] = useState(null);
   const [paymentProofFile, setPaymentProofFile] = useState(null);
 const [toast, setToast] = useState(null);
-  const getAuthHeaders = () => ({
-    headers: {
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-  });
 
+const getAuthHeaders = () => ({
+  headers: {
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  },
+});
   const getUploadHeaders = () => ({
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -744,6 +745,13 @@ const marcarRunnerPagado = async (taskId) => {
     : adminPaymentFilter === "RUNNER_PENDING"
     ? adminTasks.filter((task) => task.runnerPayoutStatus !== "PAID")
     : adminTasks.filter((task) => task.runnerPayoutStatus === "PAID");
+
+const paidAdminTasks = adminTasks.filter((task) => task.paymentStatus === "PAID");
+
+const maxPaidAmount = Math.max(
+  1,
+  ...paidAdminTasks.map((task) => task.estimatedPrice || 0)
+);
 
   const ChatBox = () => {
     if (!activeChatTaskId) return null;
@@ -1617,6 +1625,31 @@ const marcarRunnerPagado = async (taskId) => {
         <span>Pagos pendientes</span>
         <strong>{adminStats.money.pendingPaymentTasksCount || 0}</strong>
       </div>
+    </div>
+  </div>
+)}
+
+{paidAdminTasks.length > 0 && (
+  <div className="card">
+    <h2 className="admin-section-title">📈 Ingresos por mandado</h2>
+
+    <div className="simple-chart">
+      {paidAdminTasks.map((task) => (
+        <div key={task.id} className="chart-row">
+          <span>#{task.id}</span>
+
+          <div className="chart-track">
+            <div
+              className="chart-bar"
+              style={{
+                width: `${((task.estimatedPrice || 0) / maxPaidAmount) * 100}%`,
+              }}
+            />
+          </div>
+
+          <strong>RD${task.estimatedPrice || 0}</strong>
+        </div>
+      ))}
     </div>
   </div>
 )}

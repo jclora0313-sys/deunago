@@ -862,3 +862,39 @@ strong {
   font-size: 24px;
   color: white;
 }
+.finance-chart {
+  width: 100%;
+  height: 340px;
+  margin-top: 20px;
+}
+
+.simple-chart {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 100px;
+  gap: 14px;
+  align-items: center;
+}
+
+.chart-row span,
+.chart-row strong {
+  font-weight: 900;
+}
+
+.chart-track {
+  height: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.chart-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+}
