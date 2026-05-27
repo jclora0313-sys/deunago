@@ -718,3 +718,147 @@ strong {
   flex-direction: column;
   gap: 10px;
 }       
+
+/* TOAST NOTIFICATIONS */
+
+.toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  padding: 16px 20px;
+  border-radius: 18px;
+  font-weight: 800;
+  max-width: 360px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  animation: toastIn 0.25s ease;
+}
+
+.toast-success {
+  background: rgba(34, 197, 94, 0.16);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.toast-error {
+  background: rgba(239, 68, 68, 0.16);
+  color: #ff6b6b;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.toast-info {
+  background: rgba(59, 130, 246, 0.16);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .toast {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+    max-width: none;
+  }
+}
+
+/* PREMIUM ADMIN FINANCE DASHBOARD */
+
+.admin-stats-grid {
+  margin-top: 24px;
+}
+
+.admin-stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.admin-stat-card::after {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 120px;
+  height: 120px;
+  background: rgba(212, 160, 23, 0.12);
+  border-radius: 999px;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-3px);
+  transition: 0.2s ease;
+}
+
+.admin-stat-value {
+  position: relative;
+  z-index: 2;
+}
+
+.admin-stat-label {
+  position: relative;
+  z-index: 2;
+}
+
+.finance-highlight {
+  background:
+    linear-gradient(135deg, rgba(212, 160, 23, 0.22), rgba(10, 10, 10, 0.96));
+  border: 1px solid rgba(212, 160, 23, 0.35);
+  border-radius: 32px;
+  padding: 30px;
+  margin-bottom: 28px;
+}
+
+.finance-highlight h2 {
+  font-size: clamp(30px, 4vw, 52px);
+  margin-bottom: 12px;
+}
+
+.finance-highlight p {
+  color: #d1d5db;
+  font-size: 17px;
+}
+
+.finance-big-number {
+  font-size: clamp(46px, 7vw, 84px);
+  font-weight: 900;
+  letter-spacing: -0.06em;
+  color: var(--gold-light);
+  margin: 18px 0 8px;
+}
+
+.finance-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.finance-mini-card {
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 18px;
+}
+
+.finance-mini-card span {
+  display: block;
+  color: var(--gray);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+.finance-mini-card strong {
+  font-size: 24px;
+  color: white;
+}

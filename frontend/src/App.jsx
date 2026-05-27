@@ -52,7 +52,7 @@ function App() {
   const [licenseFile, setLicenseFile] = useState(null);
   const [deliveryProofFile, setDeliveryProofFile] = useState(null);
   const [paymentProofFile, setPaymentProofFile] = useState(null);
-
+const [toast, setToast] = useState(null);
   const getAuthHeaders = () => ({
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -65,6 +65,14 @@ function App() {
       "Content-Type": "multipart/form-data",
     },
   });
+
+const showToast = (message, type = "success") => {
+  setToast({ message, type });
+
+  setTimeout(() => {
+    setToast(null);
+  }, 3000);
+};
 
   const updateTaskInState = (updatedTask) => {
     setClientTasks((prev) =>
@@ -232,7 +240,7 @@ function App() {
       enviarUbicacionRunner(taskId, false);
     }, 10000);
 
-    alert("Tracking iniciado");
+    showToast("Tracking iniciado", "info");
   };
 
   const detenerTrackingRunner = () => {
@@ -242,7 +250,7 @@ function App() {
     }
 
     setTrackingTaskId(null);
-    alert("Tracking detenido");
+    showToast("Tracking detenido", "info");
   };
 
   const register = async () => {
@@ -254,7 +262,7 @@ function App() {
         role,
       });
 
-      alert("Cuenta creada");
+      showToast("Cuenta creada", "success");
       setMode("login");
     } catch (error) {
       alert(error.response?.data?.message || "Error");
@@ -333,7 +341,7 @@ function App() {
         getAuthHeaders()
       );
 
-      alert(`Mandado creado. Precio estimado: RD$${precioEstimado}`);
+      showToast(`Mandado creado. Precio estimado: RD$${precioEstimado}`, "success");
 
       setDescription("");
       setPickupLat("");
@@ -360,7 +368,7 @@ function App() {
         getAuthHeaders()
       );
 
-      alert("Mandado cancelado");
+      showToast("Mandado cancelado", "success");
       cargarMisMandadosCliente();
     } catch (error) {
       alert(error.response?.data?.message || "Error cancelando mandado");
@@ -378,7 +386,7 @@ function App() {
         getAuthHeaders()
       );
 
-      alert("Mandado calificado");
+      showToast("Mandado calificado", "success");
       setRating(5);
       setReview("");
       cargarMisMandadosCliente();
@@ -612,10 +620,10 @@ const marcarRunnerPagado = async (taskId) => {
   }
 };
 
-    alert("Pago validado");
+   showToast("Pago validado", "success");
     cargarEstadisticasAdmin();
   } catch (error) {
-    alert(error.response?.data?.message || "Error validando pago");
+    showToast(error.response?.data?.message || "Error validando pago", "error");
   }
 };
 
@@ -777,6 +785,11 @@ const marcarRunnerPagado = async (taskId) => {
 
   return (
     <div className="page">
+      {toast && (
+  <div className={`toast toast-${toast.type}`}>
+    {toast.message}
+  </div>
+)}
       <div className="navbar">
         <div>
           <div className="logo">DeUnaGo</div>
@@ -1573,6 +1586,40 @@ const marcarRunnerPagado = async (taskId) => {
 >
   🧾 Ver pagos
 </button>
+
+{adminStats && (
+  <div className="finance-highlight">
+    <h2>💰 Resumen financiero</h2>
+
+    <p>Total cobrado por mandados pagados</p>
+
+    <div className="finance-big-number">
+      RD${adminStats.money.totalCollected || 0}
+    </div>
+
+    <div className="finance-mini-grid">
+      <div className="finance-mini-card">
+        <span>Comisión DeUnaGo 30%</span>
+        <strong>RD${adminStats.money.totalPlatformFee || 0}</strong>
+      </div>
+
+      <div className="finance-mini-card">
+        <span>Ganancias runners 70%</span>
+        <strong>RD${adminStats.money.totalRunnerEarnings || 0}</strong>
+      </div>
+
+      <div className="finance-mini-card">
+        <span>Mandados pagados</span>
+        <strong>{adminStats.money.paidTasksCount || 0}</strong>
+      </div>
+
+      <div className="finance-mini-card">
+        <span>Pagos pendientes</span>
+        <strong>{adminStats.money.pendingPaymentTasksCount || 0}</strong>
+      </div>
+    </div>
+  </div>
+)}
 
             {adminStats && (
               <div className="card">
