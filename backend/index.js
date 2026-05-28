@@ -1407,6 +1407,26 @@ app.patch("/tasks/:id/complete", authMiddleware, requireRole("RUNNER"), async (r
   }
 });
 
+app.use((error, req, res, next) => {
+  if (error.message === "Tipo de archivo no permitido") {
+    return res.status(400).json({
+      message: "Solo se permiten JPG, PNG, WEBP o PDF",
+    });
+  }
+
+  if (error.code === "LIMIT_FILE_SIZE") {
+    return res.status(400).json({
+      message: "El archivo no puede pesar más de 5 MB",
+    });
+  }
+
+  console.log(error);
+
+  res.status(500).json({
+    message: "Error interno del servidor",
+  });
+});
+
 server.listen(3000, () => {
   console.log("🚀 Servidor corriendo en http://localhost:3000");
 });
