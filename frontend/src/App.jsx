@@ -764,19 +764,26 @@ const maxPaidAmount = Math.max(
           Cerrar chat
         </button>
 
-        <div className="task-card">
-          {messages.length === 0 && <p className="empty">No hay mensajes.</p>}
+      <div className="chat-messages">
+  {messages.length === 0 && <p className="empty">No hay mensajes.</p>}
 
-          {messages.map((msg) => (
-            <div key={msg.id} className="task-card">
-              <p>
-                <strong>{msg.senderId === user.id ? "Tú" : "Otro"}:</strong>{" "}
-                {msg.text}
-              </p>
-            </div>
-          ))}
-        </div>
+  {messages.map((msg) => (
+    <div
+      key={msg.id}
+      className={
+        msg.senderId === user.id
+          ? "chat-bubble chat-bubble-me"
+          : "chat-bubble chat-bubble-other"
+      }
+    >
+      <span className="chat-sender">
+        {msg.senderId === user.id ? "Tú" : "Otro"}
+      </span>
 
+      {msg.text}
+    </div>
+  ))}
+</div>
         <input
           className="input"
           placeholder="Escribe un mensaje"
