@@ -1059,6 +1059,12 @@ app.patch("/tasks/:id/accept", authMiddleware, requireRole("RUNNER"), async (req
       where: { id: req.user.id },
     });
 
+    if (task.paymentStatus !== "PAID") {
+  return res.status(400).json({
+    message: "Este mandado todavía no tiene pago validado",
+  });
+}
+
     if (!runner) {
       return res.status(404).json({ message: "Runner no encontrado" });
     }
