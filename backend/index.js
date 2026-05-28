@@ -1154,6 +1154,16 @@ app.patch("/tasks/:id/deliver", authMiddleware, requireRole("RUNNER"), async (re
   try {
     const taskId = Number(req.params.id);
 
+const existingTask = await prisma.task.findUnique({
+  where: { id: taskId },
+});
+
+if (!existingTask?.deliveryProofUrl) {
+  return res.status(400).json({
+    message: "Debes subir comprobante de entrega antes de marcar entregado",
+  });
+}
+
     const { task, updatedTask } = await updateTaskStatus(
       taskId,
       req.user.id,
