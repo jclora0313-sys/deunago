@@ -890,6 +890,18 @@ app.patch("/tasks/:id/cancel", authMiddleware, requireRole("CLIENT"), async (req
   try {
     const taskId = Number(req.params.id);
 
+if (task.paymentStatus === "PAID") {
+  return res.status(400).json({
+    message: "No puedes cancelar un mandado ya pagado",
+  });
+}
+
+if (task.runnerId) {
+  return res.status(400).json({
+    message: "No puedes cancelar un mandado ya aceptado",
+  });
+}
+
     const task = await prisma.task.findUnique({
       where: { id: taskId },
     });
