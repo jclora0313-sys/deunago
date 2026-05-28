@@ -1125,6 +1125,16 @@ app.patch("/tasks/:id/pickup", authMiddleware, requireRole("RUNNER"), async (req
   try {
     const taskId = Number(req.params.id);
 
+const existingTask = await prisma.task.findUnique({
+  where: { id: taskId },
+});
+
+if (!existingTask || existingTask.status !== "ACCEPTED") {
+  return res.status(400).json({
+    message: "Solo puedes marcar recogido un mandado aceptado",
+  });
+}
+
     const { task, updatedTask } = await updateTaskStatus(
       taskId,
       req.user.id,
@@ -1146,6 +1156,16 @@ app.patch("/tasks/:id/pickup", authMiddleware, requireRole("RUNNER"), async (req
 app.patch("/tasks/:id/on-the-way", authMiddleware, requireRole("RUNNER"), async (req, res) => {
   try {
     const taskId = Number(req.params.id);
+
+const existingTask = await prisma.task.findUnique({
+  where: { id: taskId },
+});
+
+if (!existingTask || existingTask.status !== "PICKED_UP") {
+  return res.status(400).json({
+    message: "Solo puedes marcar en camino después de recoger el mandado",
+  });
+}
 
     const { task, updatedTask } = await updateTaskStatus(
       taskId,
@@ -1176,6 +1196,16 @@ const existingTask = await prisma.task.findUnique({
 if (!existingTask?.deliveryProofUrl) {
   return res.status(400).json({
     message: "Debes subir comprobante de entrega antes de marcar entregado",
+  });
+}
+
+const existingTask = await prisma.task.findUnique({
+  where: { id: taskId },
+});
+
+if (!existingTask || existingTask.status !== "ON_THE_WAY") {
+  return res.status(400).json({
+    message: "Solo puedes entregar un mandado que está en camino",
   });
 }
 
