@@ -1398,10 +1398,21 @@ app.post("/tasks/:id/messages", authMiddleware, async (req, res) => {
     const taskId = Number(req.params.id);
     const { text } = req.body;
 
-    if (!text) {
-      return res.status(400).json({ message: "El mensaje está vacío" });
-    }
+   const { text } = req.body;
 
+const cleanText = String(text || "").trim();
+
+if (!cleanText) {
+  return res.status(400).json({
+    message: "El mensaje está vacío",
+  });
+}
+
+if (cleanText.length > 500) {
+  return res.status(400).json({
+    message: "El mensaje no puede tener más de 500 caracteres",
+  });
+}
     const task = await prisma.task.findUnique({
       where: { id: taskId },
     });
@@ -1421,7 +1432,7 @@ app.post("/tasks/:id/messages", authMiddleware, async (req, res) => {
       data: {
         taskId,
         senderId: req.user.id,
-        text,
+        text: cleanText,
       },
     });
 
