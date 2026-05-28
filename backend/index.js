@@ -1199,10 +1199,6 @@ if (!existingTask?.deliveryProofUrl) {
   });
 }
 
-const existingTask = await prisma.task.findUnique({
-  where: { id: taskId },
-});
-
 if (!existingTask || existingTask.status !== "ON_THE_WAY") {
   return res.status(400).json({
     message: "Solo puedes entregar un mandado que está en camino",
