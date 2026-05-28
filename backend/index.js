@@ -1059,11 +1059,7 @@ app.patch("/tasks/:id/accept", authMiddleware, requireRole("RUNNER"), async (req
       where: { id: req.user.id },
     });
 
-    if (task.paymentStatus !== "PAID") {
-  return res.status(400).json({
-    message: "Este mandado todavía no tiene pago validado",
-  });
-}
+ 
 
     if (!runner) {
       return res.status(404).json({ message: "Runner no encontrado" });
@@ -1079,16 +1075,29 @@ app.patch("/tasks/:id/accept", authMiddleware, requireRole("RUNNER"), async (req
       where: { id: taskId },
     });
 
-    if (!task) {
-      return res.status(404).json({ message: "Mandado no existe" });
-    }
+    if (task.paymentStatus !== "PAID") {
+  return res.status(400).json({
+    message: "Este mandado todavía no tiene pago validado",
+  });
+}
 
-    if (task.status !== "OPEN" || task.runnerId !== null) {
-      return res.status(400).json({
-        message: "Este mandado ya no está disponible",
-      });
-    }
+if (!task) {
+  return res.status(404).json({
+    message: "Mandado no encontrado",
+  });
+}
 
+if (task.status !== "OPEN") {
+  return res.status(400).json({
+    message: "Este mandado ya no está disponible",
+  });
+}
+
+if (task.runnerId) {
+  return res.status(400).json({
+    message: "Otro runner ya aceptó este mandado",
+  });
+}
     const updatedTask = await prisma.task.update({
       where: { id: taskId },
       data: {
