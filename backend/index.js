@@ -1487,6 +1487,69 @@ app.use((error, req, res, next) => {
     message: "Error interno del servidor",
   });
 });
+app.get("/users/:id/profile", authMiddleware, async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        role: true,
+        status: true,
+        isAvailable: true,
+        identificationValid: true,
+        licenseValid: true,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Usuario no encontrado",
+      });
+    }
+
+    const completedTasks =
+      user.role === "RUNNER"
+        ? await prisma.task.findMany({
+            where: {
+              runnerId: userId,
+              OR: [{ status: "DELIVERED" }, { status: "COMPLETED" }],
+            },
+          })
+        : [];
+
+    const ratedTasks = completedTasks.filter((task) => task.rating);
+
+    const averageRating =
+      ratedTasks.length > 0
+        ? ratedTasks.reduce((total, task) => total + task.rating, 0) /
+          ratedTasks.length
+        : 0;
+
+    res.json({
+      user,
+      stats: {
+        completedTasks: completedTasks.length,
+        reviewsCount: ratedTasks.length,
+        averageRating: Number(averageRating.toFixed(1)),
+      },
+      reviews: ratedTasks.map((task) => ({
+        id: task.id,
+        rating: task.rating,
+        review: task.review,
+        description: task.description,
+      })),
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error cargando perfil",
+    });
+  }
+});
 
 server.listen(3000, () => {
   console.log("🚀 Servidor corriendo en http://localhost:3000");
