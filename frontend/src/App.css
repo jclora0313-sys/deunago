@@ -941,3 +941,116 @@ strong {
   margin-bottom: 4px;
   font-weight: 800;
 }
+
+/* MOBILE RESPONSIVE FINAL */
+
+@media (max-width: 768px) {
+  .page {
+    padding: 0;
+  }
+
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px;
+  }
+
+  .container {
+    padding: 16px;
+  }
+
+  .card,
+  .auth-card,
+  .runner-profile-card,
+  .upload-card,
+  .admin-user-card,
+  .runner-task-card,
+  .task-card,
+  .finance-highlight {
+    border-radius: 22px;
+    padding: 18px;
+  }
+
+  .auth-shell {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .auth-brand h1 {
+    font-size: 42px;
+  }
+
+  .button,
+  .input,
+  select {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .button-group,
+  .runner-actions,
+  .admin-actions,
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-stats-grid,
+  .runner-status-grid,
+  .runner-stats-grid,
+  .finance-mini-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-stat-value,
+  .runner-stat-value {
+    font-size: 34px;
+  }
+
+  .finance-big-number {
+    font-size: 48px;
+  }
+
+  .chart-row {
+    grid-template-columns: 48px 1fr 76px;
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  .chat-messages {
+    max-height: 360px;
+  }
+
+  .chat-bubble {
+    max-width: 88%;
+  }
+
+  .document-link {
+    display: block;
+    width: 100%;
+    text-align: center;
+  }
+
+  .leaflet-container,
+  .map-container {
+    height: 320px !important;
+    border-radius: 20px;
+  }
+}
+
+@media (max-width: 420px) {
+  .auth-brand h1 {
+    font-size: 34px;
+  }
+
+  .card-title,
+  .admin-section-title,
+  .runner-section-title {
+    font-size: 26px;
+  }
+
+  .finance-highlight h2 {
+    font-size: 30px;
+  }
+}
