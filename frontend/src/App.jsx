@@ -824,112 +824,149 @@ const maxPaidAmount = Math.max(
       </div>
 
       <div className="container">
-        {!user && (
-          <div className="auth-shell">
-            <div className="auth-brand">
-              <div className="auth-logo"></div>
-              <h1>Tu mandado en minutos</h1>
-              <p>
-                Pide lo que necesitas y conecta con mandaderos disponibles cerca
-                de ti.
-              </p>
-            </div>
+ {!user && (
+  <div className="landing-shell">
+    <section className="landing-hero">
+      <div className="landing-badge">
+        🚀 Mandados rápidos y seguros
+      </div>
 
-            <div className="auth-card">
-              <div className="auth-tabs">
-                <button
-                  onClick={() => setMode("login")}
-                  className={mode === "login" ? "auth-tab active" : "auth-tab"}
-                >
-                  Login
-                </button>
+      <h1>
+        Tu mandado en minutos
+      </h1>
 
-                <button
-                  onClick={() => setMode("register")}
-                  className={
-                    mode === "register" ? "auth-tab active" : "auth-tab"
-                  }
-                >
-                  Registro
-                </button>
-              </div>
+      <p>
+        Conecta con mandaderos disponibles, paga digitalmente,
+        rastrea tu pedido y recibe comprobante de entrega.
+      </p>
 
-              {mode === "login" && (
-                <>
-                  <h2>Bienvenido</h2>
-                  <p className="auth-subtitle">Inicia sesión para continuar</p>
+      <div className="landing-actions">
+        <button
+          onClick={() => setMode("register")}
+          className="button button-primary"
+        >
+          Crear cuenta
+        </button>
 
-                  <input
-                    className="input"
-                    placeholder="Teléfono"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
+        <button
+          onClick={() => setMode("login")}
+          className="button button-blue"
+        >
+          Iniciar sesión
+        </button>
+      </div>
 
-                  <input
-                    className="input"
-                    type="password"
-                    placeholder="Contraseña"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+      <div className="landing-features">
+        <div>
+          <strong>📍 Tracking</strong>
+          <span>Ubicación en tiempo real</span>
+        </div>
 
-                  <button
-                    onClick={login}
-                    className="button button-primary auth-main-btn"
-                  >
-                    Iniciar sesión
-                  </button>
-                </>
-              )}
+        <div>
+          <strong>💳 Pago digital</strong>
+          <span>Control de pagos y comisión</span>
+        </div>
 
-              {mode === "register" && (
-                <>
-                  <h2>Crear cuenta</h2>
-                  <p className="auth-subtitle">Empieza a usar DeUnaGo hoy</p>
+        <div>
+          <strong>🛵 Mandaderos</strong>
+          <span>Validación de documentos</span>
+        </div>
+      </div>
+    </section>
 
-                  <input
-                    className="input"
-                    placeholder="Nombre"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
+    <section className="auth-card landing-auth-card">
+      <div className="auth-tabs">
+        <button
+          onClick={() => setMode("login")}
+          className={mode === "login" ? "auth-tab active" : "auth-tab"}
+        >
+          Login
+        </button>
 
-                  <input
-                    className="input"
-                    placeholder="Teléfono"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
+        <button
+          onClick={() => setMode("register")}
+          className={mode === "register" ? "auth-tab active" : "auth-tab"}
+        >
+          Registro
+        </button>
+      </div>
 
-                  <input
-                    className="input"
-                    type="password"
-                    placeholder="Contraseña"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
+      {mode === "login" && (
+        <>
+          <h2>Bienvenido</h2>
+          <p className="auth-subtitle">Inicia sesión para continuar</p>
 
-                  <select
-                    className="input"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value)}
-                  >
-                    <option value="CLIENT">Cliente</option>
-                    <option value="RUNNER">Mandadero</option>
-                  </select>
+          <input
+            className="input"
+            placeholder="Teléfono"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
 
-                  <button
-                    onClick={register}
-                    className="button button-primary auth-main-btn"
-                  >
-                    Crear cuenta
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+          <input
+            className="input"
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <button
+            onClick={login}
+            className="button button-primary auth-main-btn"
+          >
+            Iniciar sesión
+          </button>
+        </>
+      )}
+
+      {mode === "register" && (
+        <>
+          <h2>Crear cuenta</h2>
+          <p className="auth-subtitle">Empieza a usar DeUnaGo hoy</p>
+
+          <input
+            className="input"
+            placeholder="Nombre"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+
+          <input
+            className="input"
+            placeholder="Teléfono"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+
+          <input
+            className="input"
+            type="password"
+            placeholder="Contraseña"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <select
+            className="input"
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <option value="CLIENT">Cliente</option>
+            <option value="RUNNER">Mandadero</option>
+          </select>
+
+          <button
+            onClick={register}
+            className="button button-primary auth-main-btn"
+          >
+            Crear cuenta
+          </button>
+        </>
+      )}
+    </section>
+  </div>
+)}
 
         {user && (
           <>
