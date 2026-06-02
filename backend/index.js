@@ -1394,7 +1394,6 @@ app.post("/tasks/:id/messages", authMiddleware, async (req, res) => {
     const taskId = Number(req.params.id);
     const { text } = req.body;
 
-   const { text } = req.body;
 
 const cleanText = String(text || "").trim();
 
