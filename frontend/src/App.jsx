@@ -54,6 +54,7 @@ function App() {
   const [deliveryProofFile, setDeliveryProofFile] = useState(null);
   const [paymentProofFile, setPaymentProofFile] = useState(null);
 const [toast, setToast] = useState(null);
+const messageInputRef = useRef(null);
 
 const getAuthHeaders = () => ({
   headers: {
@@ -753,7 +754,7 @@ const maxPaidAmount = Math.max(
   ...paidAdminTasks.map((task) => task.estimatedPrice || 0)
 );
 
-  const ChatBox = () => {
+  function ChatBox() {
     if (!activeChatTaskId) return null;
 
     return (
@@ -784,19 +785,23 @@ const maxPaidAmount = Math.max(
     </div>
   ))}
 </div>
-        <input
-          className="input"
-          placeholder="Escribe un mensaje"
-          value={messageText}
-          onChange={(e) => setMessageText(e.target.value)}
-        />
+       <input
+  ref={messageInputRef}
+  className="input"
+  placeholder="Escribe un mensaje"
+  value={messageText}
+  onChange={(e) => {
+    setMessageText(e.target.value);
+    setTimeout(() => messageInputRef.current?.focus(), 0);
+  }}
+/>
 
         <button onClick={enviarMensaje} className="button button-success">
           Enviar mensaje
         </button>
       </div>
     );
-  };
+  }
 
   return (
     <div className="page">
