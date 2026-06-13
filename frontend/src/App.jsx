@@ -11,6 +11,7 @@ const socket = io(API_URL);
 
 function App() {
   const [mode, setMode] = useState("login");
+  const [showNotificationsPanel, setShowNotificationsPanel] = useState(false);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -267,7 +268,10 @@ const showToast = (message, type = "success") => {
       showToast("Cuenta creada", "success");
       setMode("login");
     } catch (error) {
-      alert(error.response?.data?.message || "Error");
+      showToast(
+  error.response?.data?.message || "Error creando cuenta",
+  "error"
+);
     }
   };
 
@@ -283,7 +287,7 @@ const showToast = (message, type = "success") => {
 
       window.location.reload();
     } catch (error) {
-      alert(error.response?.data?.message || "Error");
+      showToast(error.response?.data?.message || "Error", "error");
     }
   };
 
@@ -353,7 +357,10 @@ const showToast = (message, type = "success") => {
 
       cargarMisMandadosCliente();
     } catch (error) {
-      alert(error.response?.data?.message || "Error");
+     showToast(
+  error.response?.data?.message || "Error creando mandado",
+  "error"
+);
     }
   };
 
@@ -373,7 +380,7 @@ const showToast = (message, type = "success") => {
       showToast("Mandado cancelado", "success");
       cargarMisMandadosCliente();
     } catch (error) {
-      alert(error.response?.data?.message || "Error cancelando mandado");
+      showToast(error.response?.data?.message || "Error cancelando mandado", "error");
     }
   };
 
@@ -558,11 +565,14 @@ const subirComprobantePago = async (taskId) => {
       getUploadHeaders()
     );
 
-    alert("Comprobante de pago subido correctamente");
+    showToast("Comprobante de pago subido correctamente", "success");
     setPaymentProofFile(null);
     cargarMisMandadosCliente();
   } catch (error) {
-    alert(error.response?.data?.message || "Error subiendo comprobante de pago");
+    showToast(
+  error.response?.data?.message || "Error subiendo comprobante de pago",
+  "error"
+);
   }
 };
 
@@ -574,11 +584,14 @@ const subirComprobantePago = async (taskId) => {
         getAuthHeaders()
       );
 
-      alert("Identificación validada");
+      showToast("Identificación validada", "success");
       cargarUsuarios();
       cargarEstadisticasAdmin();
     } catch (error) {
-      alert(error.response?.data?.message || "Error validando identificación");
+      showToast(
+  error.response?.data?.message || "Error validando identificación",
+  "error"
+);
     }
   };
 
@@ -590,11 +603,14 @@ const subirComprobantePago = async (taskId) => {
         getAuthHeaders()
       );
 
-      alert("Licencia validada");
+      showToast("Licencia validada", "success");
       cargarUsuarios();
       cargarEstadisticasAdmin();
     } catch (error) {
-      alert(error.response?.data?.message || "Error validando licencia");
+      showToast(
+  error.response?.data?.message || "Error validando licencia",
+  "error"
+);
     }
   };
 
@@ -614,11 +630,14 @@ const marcarRunnerPagado = async (taskId) => {
       getAuthHeaders()
     );
 
-    alert("Runner marcado como pagado");
+    showToast("Runner marcado como pagado", "success");
     cargarMandadosAdmin();
     cargarEstadisticasAdmin();
   } catch (error) {
-    alert(error.response?.data?.message || "Error marcando pago del runner");
+    showToast(
+  error.response?.data?.message || "Error marcando pago del runner",
+  "error"
+);
   }
 };
 
@@ -804,30 +823,67 @@ const maxPaidAmount = Math.max(
   }
 
   return (
-    <div className="page">
-      {toast && (
-  <div className={`toast toast-${toast.type}`}>
-    {toast.message}
-  </div>
-)}
-      <div className="navbar">
-        <div>
-          <div className="logo">DeUnaGo</div>
+  <div className="page">
+    {toast && (
+      <div className={`toast toast-${toast.type}`}>
+        {toast.message}
+      </div>
+    )}
 
-          {user && (
-            <div className="user-info">
-              {user.name} • {user.role}
-            </div>
-          )}
-        </div>
+    <div className="navbar">
+      <div>
+        <div className="logo">DeUnaGo</div>
 
         {user && (
-          <button onClick={logout} className="button button-danger">
-            Logout
-          </button>
+          <div className="user-info">
+            {user.name} • {user.role}
+          </div>
         )}
       </div>
 
+      {user && (
+        <div className="navbar-actions">
+          <div
+  className="notification-counter"
+  onClick={() => {
+  setShowNotificationsPanel(!showNotificationsPanel);
+  cargarNotificaciones();
+}}
+>
+  🔔 {notifications.filter((n) => !n.read).length}
+</div>
+
+          <button onClick={logout} className="button button-danger">
+            Logout
+          </button>
+        </div>
+      )}
+    </div>
+{showNotificationsPanel && (
+  <div className="notifications-panel">
+    <h3>🔔 Notificaciones</h3>
+
+    {notifications.length === 0 && (
+      <p className="empty">No tienes notificaciones.</p>
+    )}
+
+    {notifications.map((notification) => (
+      <div key={notification.id} className="notification-item">
+        <p>{notification.message}</p>
+        <span>{notification.read ? "Leída" : "Nueva"}</span>
+
+        {!notification.read && (
+          <button
+            onClick={() => marcarNotificacionLeida(notification.id)}
+            className="button button-blue"
+          >
+            Marcar leída
+          </button>
+        )}
+      </div>
+    ))}
+  </div>
+)}
       <div className="container">
  {!user && (
   <div className="landing-shell">
