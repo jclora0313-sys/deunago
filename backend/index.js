@@ -325,6 +325,24 @@ app.get("/notifications", authMiddleware, async (req, res) => {
   res.json(notifications);
 });
 
+app.patch("/notifications/read-all", authMiddleware, async (req, res) => {
+  try {
+    await prisma.notification.updateMany({
+      where: {
+        userId: req.user.id,
+        read: false,
+      },
+      data: {
+        read: true,
+      },
+    });
+
+    res.json({ message: "Todas leídas" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error marcando notificaciones" });
+  }
+});
 app.patch("/notifications/:id/read", authMiddleware, async (req, res) => {
   try {
     const notificationId = Number(req.params.id);

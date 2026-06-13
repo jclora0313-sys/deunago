@@ -306,6 +306,28 @@ const showToast = (message, type = "success") => {
     setNotifications(res.data);
   };
 
+  const marcarTodasNotificacionesLeidas = async () => {
+  try {
+    await axios.patch(
+      `${API_URL}/notifications/read-all`,
+      {},
+      getAuthHeaders()
+    );
+
+    cargarNotificaciones();
+
+    showToast(
+      "Todas las notificaciones fueron marcadas como leídas",
+      "success"
+    );
+  } catch (error) {
+    showToast(
+      error.response?.data?.message ||
+        "Error marcando notificaciones",
+      "error"
+    );
+  }
+};
   const marcarNotificacionLeida = async (notificationId) => {
     await axios.patch(
       `${API_URL}/notifications/${notificationId}/read`,
@@ -863,6 +885,12 @@ const maxPaidAmount = Math.max(
   <div className="notifications-panel">
     <h3>🔔 Notificaciones</h3>
 
+<button
+  onClick={marcarTodasNotificacionesLeidas}
+  className="button button-primary"
+>
+  ✓ Marcar todas como leídas
+</button>
     {notifications.length === 0 && (
       <p className="empty">No tienes notificaciones.</p>
     )}
