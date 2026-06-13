@@ -187,6 +187,79 @@ async function updateTaskStatus(taskId, runnerId, nextStatus) {
 
 // AUTH
 
+// USER PROFILE
+
+app.get("/users/me", authMiddleware, async (req, res) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        name: true,
+        phone: true,
+        role: true,
+        status: true,
+        isAvailable: true,
+        identificationValid: true,
+        licenseValid: true,
+        identificationUrl: true,
+        licenseUrl: true,
+        profilePhotoUrl: true,
+        mainAddress: true,
+      },
+    });
+
+    res.json(user);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error cargando perfil" });
+  }
+});
+
+app.patch("/users/me", authMiddleware, async (req, res) => {
+  try {
+    const { name, mainAddress } = req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        name,
+        mainAddress,
+      },
+    });
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Error actualizando perfil" });
+  }
+});
+
+app.post(
+  "/users/me/photo",
+  authMiddleware,
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No subiste ninguna foto" });
+      }
+
+      const updatedUser = await prisma.user.update({
+        where: { id: req.user.id },
+        data: {
+          profilePhotoUrl: req.file.path,
+        },
+      });
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({ message: "Error subiendo foto de perfil" });
+    }
+  }
+);
+
 app.post("/auth/register", async (req, res) => {
   try {
     const { name, phone, password, role } = req.body;

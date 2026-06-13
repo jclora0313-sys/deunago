@@ -21,6 +21,8 @@ model User {
 
   identificationUrl    String?
   licenseUrl           String?
+  profilePhotoUrl String?
+mainAddress     String?
 }
 
 model Task {
