@@ -33,6 +33,7 @@ function App() {
 
   const [clientFilter, setClientFilter] = useState("ALL");
   const [runnerFilter, setRunnerFilter] = useState("ALL");
+  const [runnerStats, setRunnerStats] = useState(null);
 
   const [description, setDescription] = useState("");
   const [pickupLat, setPickupLat] = useState("");
@@ -515,6 +516,15 @@ const subirFotoPerfil = async () => {
   const cargarGanancias = async () => {
     const res = await axios.get(`${API_URL}/runners/earnings`, getAuthHeaders());
     setEarnings(res.data);
+  };
+
+  const cargarEstadisticasRunner = async () => {
+    const res = await axios.get(
+      `${API_URL}/runners/me/stats`,
+      getAuthHeaders()
+    );
+
+    setRunnerStats(res.data);
   };
 
   const aceptarMandado = async (taskId) => {
@@ -1678,7 +1688,10 @@ const clientTotalSpent = clientTasks
                   </button>
 
                   <button
-                    onClick={cargarGanancias}
+                    onClick={() => {
+  cargarGanancias();
+  cargarEstadisticasRunner();
+}}
                     className="button button-success"
                   >
                     💰 Ver ganancias
@@ -1720,6 +1733,24 @@ const clientTotalSpent = clientTasks
                     </div>
                   </div>
                 )}
+
+                {runnerStats && (
+  <div className="runner-highlight">
+    <h2>⭐ Reputación</h2>
+
+    <p>
+      Rating promedio: {runnerStats.averageRating}/5
+    </p>
+
+    <p>
+      Calificaciones recibidas: {runnerStats.ratingsCount}
+    </p>
+
+    <p>
+      Mandados completados: {runnerStats.completedCount}
+    </p>
+  </div>
+)}
 
                 <h2 className="runner-section-title">📦 Disponibles</h2>
 

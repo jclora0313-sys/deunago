@@ -1347,6 +1347,34 @@ app.get("/runners/earnings", authMiddleware, requireRole("RUNNER"), async (req, 
     },
   });
 
+  app.get("/runners/me/stats", authMiddleware, requireRole("RUNNER"), async (req, res) => {
+  try {
+    const completedTasks = await prisma.task.findMany({
+      where: {
+        runnerId: req.user.id,
+        OR: [{ status: "DELIVERED" }, { status: "COMPLETED" }],
+      },
+    });
+
+    const ratedTasks = completedTasks.filter((task) => task.rating);
+
+    const averageRating =
+      ratedTasks.length > 0
+        ? ratedTasks.reduce((total, task) => total + task.rating, 0) / ratedTasks.length
+        : 0;
+
+    res.json({
+      completedCount: completedTasks.length,
+      ratingsCount: ratedTasks.length,
+      averageRating: Number(averageRating.toFixed(1)),
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: "Error cargando estadísticas del runner",
+    });
+  }
+});
   const totalEarnings = completedTasks.reduce((total, task) => {
   return total + (task.runnerEarnings || 0);
 }, 0);
