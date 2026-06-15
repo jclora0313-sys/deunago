@@ -1382,3 +1382,39 @@ strong {
   align-items: center;
   gap: 8px;
 }
+/* ADMIN USERS PROFESSIONAL LIST */
+
+.admin-users-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.admin-user-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.admin-user-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 2px solid var(--gold);
+}
+
+.admin-user-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-user-role {
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-weight: 900;
+  background: rgba(212, 160, 23, 0.16);
+  color: var(--gold-light);
+}

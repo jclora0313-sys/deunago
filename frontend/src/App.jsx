@@ -866,6 +866,20 @@ const marcarRunnerPagado = async (taskId) => {
     ? adminTasks.filter((task) => task.runnerPayoutStatus !== "PAID")
     : adminTasks.filter((task) => task.runnerPayoutStatus === "PAID");
 
+    const pendingIdentificationUsers = users.filter(
+  (u) => u.role === "RUNNER" && !u.identificationValid
+);
+
+const pendingLicenseUsers = users.filter(
+  (u) => u.role === "RUNNER" && !u.licenseValid
+);
+
+const pendingRunnerValidations = users.filter(
+  (u) =>
+    u.role === "RUNNER" &&
+    (!u.identificationValid || !u.licenseValid)
+);
+
 const paidAdminTasks = adminTasks.filter((task) => task.paymentStatus === "PAID");
 
 const maxPaidAmount = Math.max(
@@ -2008,6 +2022,28 @@ const clientTotalSpent = clientTasks
 >
   🧾 Ver pagos
 </button>
+{users.length > 0 && (
+  <div className="card">
+    <h2>📋 Pendientes de revisión</h2>
+
+    <div className="profile-stats-grid">
+      <div className="profile-stat-card">
+        <span>Identificaciones pendientes</span>
+        <strong>{pendingIdentificationUsers.length}</strong>
+      </div>
+
+      <div className="profile-stat-card">
+        <span>Licencias pendientes</span>
+        <strong>{pendingLicenseUsers.length}</strong>
+      </div>
+
+      <div className="profile-stat-card">
+        <span>Runners pendientes</span>
+        <strong>{pendingRunnerValidations.length}</strong>
+      </div>
+    </div>
+  </div>
+)}
 
 {adminStats && (
   <div className="finance-highlight">
@@ -2262,11 +2298,29 @@ const clientTotalSpent = clientTasks
 
               {users.map((u) => (
                 <div key={u.id} className="admin-user-card">
-                  <div className="admin-pill">{u.role}</div>
+                  <div className="admin-user-header">
+  <div className="admin-user-main">
 
-                  <h3>{u.name}</h3>
+    {u.profilePhotoUrl && (
+      <img
+        src={u.profilePhotoUrl}
+        alt={u.name}
+        className="admin-user-avatar"
+      />
+    )}
 
-                  <p className="admin-user-meta">{u.phone}</p>
+    <div>
+      <h3>{u.name}</h3>
+      <p className="admin-user-meta">{u.phone}</p>
+    </div>
+
+  </div>
+
+  <div className="admin-user-role">
+    {u.role}
+  </div>
+</div>
+                 
                   <p className="admin-user-meta">Estado: {u.status}</p>
 
                   {u.role === "RUNNER" && (
