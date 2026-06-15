@@ -109,3 +109,24 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+.chat-sender-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.chat-avatar {
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px;
+  max-width: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #facc15;
+}
+.chat-sender-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

@@ -898,9 +898,25 @@ const clientTotalSpent = clientTasks
           : "chat-bubble chat-bubble-other"
       }
     >
-      <span className="chat-sender">
-        {msg.senderId === user.id ? "Tú" : "Otro"}
-      </span>
+     <div className="chat-sender-row">
+  {msg.senderId === user.id && profile?.profilePhotoUrl && (
+   <img
+  src={profile.profilePhotoUrl}
+  alt="Perfil"
+  className="chat-avatar"
+  style={{
+    width: "28px",
+    height: "28px",
+    borderRadius: "50%",
+    objectFit: "cover"
+  }}
+/>
+  )}
+
+  <span className="chat-sender">
+    {msg.senderId === user.id ? "Tú" : "Otro"}
+  </span>
+</div>
 
       {msg.text}
     </div>
