@@ -56,6 +56,10 @@ function App() {
   const [paymentProofFile, setPaymentProofFile] = useState(null);
 const [toast, setToast] = useState(null);
 const messageInputRef = useRef(null);
+const [profile, setProfile] = useState(null);
+const [profileName, setProfileName] = useState("");
+const [profileAddress, setProfileAddress] = useState("");
+const [profilePhotoFile, setProfilePhotoFile] = useState(null);
 
 const getAuthHeaders = () => ({
   headers: {
@@ -305,6 +309,61 @@ const showToast = (message, type = "success") => {
     const res = await axios.get(`${API_URL}/notifications`, getAuthHeaders());
     setNotifications(res.data);
   };
+
+  const cargarPerfil = async () => {
+  const res = await axios.get(`${API_URL}/users/me`, getAuthHeaders());
+
+  setProfile(res.data);
+  setProfileName(res.data.name || "");
+  setProfileAddress(res.data.mainAddress || "");
+};
+const guardarPerfil = async () => {
+  try {
+    const res = await axios.patch(
+      `${API_URL}/users/me`,
+      {
+        name: profileName,
+        mainAddress: profileAddress,
+      },
+      getAuthHeaders()
+    );
+
+    setProfile(res.data);
+
+    showToast("Perfil actualizado", "success");
+  } catch (error) {
+    showToast(
+      error.response?.data?.message || "Error actualizando perfil",
+      "error"
+    );
+  }
+};
+const subirFotoPerfil = async () => {
+  try {
+    if (!profilePhotoFile) {
+      showToast("Selecciona una foto", "error");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", profilePhotoFile);
+
+    const res = await axios.post(
+      `${API_URL}/users/me/photo` ,
+      formData,
+      getUploadHeaders()
+    );
+
+    setProfile(res.data);
+
+    showToast("Foto de perfil subida", "success");
+  } catch (error) {
+    showToast(
+      error.response?.data?.message || "Error subiendo foto",
+      "error"
+    );
+  }
+};
 
   const marcarTodasNotificacionesLeidas = async () => {
   try {
@@ -795,6 +854,18 @@ const maxPaidAmount = Math.max(
   ...paidAdminTasks.map((task) => task.estimatedPrice || 0)
 );
 
+const clientCompletedTasks = clientTasks.filter(
+  (task) => task.status === "DELIVERED" || task.status === "COMPLETED"
+);
+
+const clientCancelledTasks = clientTasks.filter(
+  (task) => task.status === "CANCELLED"
+);
+
+const clientTotalSpent = clientTasks
+  .filter((task) => task.paymentStatus === "PAID")
+  .reduce((total, task) => total + (task.estimatedPrice || 0), 0);
+
   function ChatBox() {
     if (!activeChatTaskId) return null;
 
@@ -1096,6 +1167,76 @@ const maxPaidAmount = Math.max(
 
         {user?.role === "CLIENT" && (
           <>
+          <div className="card">
+  <h2>👤 Mi perfil</h2>
+
+  <button onClick={cargarPerfil} className="button button-primary">
+    Cargar perfil
+  </button>
+<div className="profile-stats-grid">
+  <div className="profile-stat-card">
+    <span>Mandados creados</span>
+    <strong>{clientTasks.length}</strong>
+  </div>
+
+  <div className="profile-stat-card">
+    <span>Completados</span>
+    <strong>{clientCompletedTasks.length}</strong>
+  </div>
+
+  <div className="profile-stat-card">
+    <span>Cancelados</span>
+    <strong>{clientCancelledTasks.length}</strong>
+  </div>
+
+  <div className="profile-stat-card">
+    <span>Total gastado</span>
+    <strong>RD${clientTotalSpent}</strong>
+  </div>
+</div>
+
+  {profile && (
+    <>
+      {profile.profilePhotoUrl && (
+        <img
+          src={profile.profilePhotoUrl}
+          alt="Perfil"
+          className="profile-photo"
+        />
+      )}
+
+      <input
+        className="input"
+        placeholder="Nombre"
+        value={profileName}
+        onChange={(e) => setProfileName(e.target.value)}
+      />
+
+      <input
+        className="input"
+        placeholder="Dirección principal"
+        value={profileAddress}
+        onChange={(e) => setProfileAddress(e.target.value)}
+      />
+
+      <button onClick={guardarPerfil} className="button button-success">
+        Guardar perfil
+      </button>
+
+      <h3>Foto de perfil</h3>
+
+      <input
+        type="file"
+        className="input"
+        onChange={(e) => setProfilePhotoFile(e.target.files[0])}
+      />
+
+      <button onClick={subirFotoPerfil} className="button button-primary">
+        Subir foto
+      </button>
+    </>
+  )}
+</div>
             <div className="card">
               <h2 className="card-title">📝 Crear mandado</h2>
 
