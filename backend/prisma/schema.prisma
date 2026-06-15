@@ -23,6 +23,9 @@ model User {
   licenseUrl           String?
   profilePhotoUrl String?
 mainAddress     String?
+vehicleType String?
+vehiclePlate String?
+bio          String?
 }
 
 model Task {

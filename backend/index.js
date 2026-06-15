@@ -206,6 +206,9 @@ app.get("/users/me", authMiddleware, async (req, res) => {
         licenseUrl: true,
         profilePhotoUrl: true,
         mainAddress: true,
+        vehicleType: true,
+vehiclePlate: true,
+bio: true,
       },
     });
 
@@ -218,14 +221,23 @@ app.get("/users/me", authMiddleware, async (req, res) => {
 
 app.patch("/users/me", authMiddleware, async (req, res) => {
   try {
-    const { name, mainAddress } = req.body;
+    const {
+  name,
+  mainAddress,
+  vehicleType,
+  vehiclePlate,
+  bio,
+} = req.body;
 
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
       data: {
-        name,
-        mainAddress,
-      },
+  name,
+  mainAddress,
+  vehicleType,
+  vehiclePlate,
+  bio,
+},
     });
 
     res.json(updatedUser);

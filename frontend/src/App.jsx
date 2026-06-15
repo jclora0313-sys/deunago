@@ -60,6 +60,9 @@ const [profile, setProfile] = useState(null);
 const [profileName, setProfileName] = useState("");
 const [profileAddress, setProfileAddress] = useState("");
 const [profilePhotoFile, setProfilePhotoFile] = useState(null);
+const [vehicleType, setVehicleType] = useState("");
+const [vehiclePlate, setVehiclePlate] = useState("");
+const [bio, setBio] = useState("");
 
 const getAuthHeaders = () => ({
   headers: {
@@ -316,6 +319,9 @@ const showToast = (message, type = "success") => {
   setProfile(res.data);
   setProfileName(res.data.name || "");
   setProfileAddress(res.data.mainAddress || "");
+  setVehicleType(res.data.vehicleType || "");
+setVehiclePlate(res.data.vehiclePlate || "");
+setBio(res.data.bio || "");
 };
 const guardarPerfil = async () => {
   try {
@@ -324,6 +330,9 @@ const guardarPerfil = async () => {
       {
         name: profileName,
         mainAddress: profileAddress,
+        vehicleType: vehicleType,
+        vehiclePlate: vehiclePlate,
+        bio: bio,
       },
       getAuthHeaders()
     );
@@ -1449,6 +1458,76 @@ const clientTotalSpent = clientTasks
 
         {user?.role === "RUNNER" && (
           <div className="card">
+          <div className="runner-profile-card">
+  <h2>👤 Perfil del runner</h2>
+
+  <button onClick={cargarPerfil} className="button button-primary">
+    Cargar perfil
+  </button>
+
+  {profile && (
+    <>
+      {profile.profilePhotoUrl && (
+        <img
+          src={profile.profilePhotoUrl}
+          alt="Perfil"
+          className="profile-photo"
+        />
+      )}
+
+      <input
+        className="input"
+        placeholder="Nombre"
+        value={profileName}
+        onChange={(e) => setProfileName(e.target.value)}
+      />
+
+      <input
+        className="input"
+        placeholder="Dirección principal"
+        value={profileAddress}
+        onChange={(e) => setProfileAddress(e.target.value)}
+      />
+
+      <input
+        className="input"
+        placeholder="Tipo de vehículo"
+        value={vehicleType}
+        onChange={(e) => setVehicleType(e.target.value)}
+      />
+
+      <input
+        className="input"
+        placeholder="Placa"
+        value={vehiclePlate}
+        onChange={(e) => setVehiclePlate(e.target.value)}
+      />
+
+      <input
+        className="input"
+        placeholder="Bio breve"
+        value={bio}
+        onChange={(e) => setBio(e.target.value)}
+      />
+
+      <button onClick={guardarPerfil} className="button button-success">
+        Guardar perfil
+      </button>
+
+      <h3>Foto de perfil</h3>
+
+      <input
+        type="file"
+        className="input"
+        onChange={(e) => setProfilePhotoFile(e.target.files[0])}
+      />
+
+      <button onClick={subirFotoPerfil} className="button button-primary">
+        Subir foto
+      </button>
+    </>
+  )}
+</div>
             <div className="runner-profile-card">
               <h2>🛵 Perfil del mandadero</h2>
 
