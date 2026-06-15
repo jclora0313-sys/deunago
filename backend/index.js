@@ -1480,11 +1480,23 @@ app.get("/tasks/:id/messages", authMiddleware, async (req, res) => {
       return res.status(403).json({ message: "No tienes permiso" });
     }
 
-    const messages = await prisma.message.findMany({
-      where: { taskId },
-      orderBy: { createdAt: "asc" },
-    });
-
+  const messages = await prisma.message.findMany({
+  where: {
+    taskId,
+  },
+  orderBy: {
+    createdAt: "asc",
+  },
+  include: {
+    sender: {
+      select: {
+        id: true,
+        name: true,
+        profilePhotoUrl: true,
+      },
+    },
+  },
+});
     res.json(messages);
   } catch (error) {
     console.log(error);

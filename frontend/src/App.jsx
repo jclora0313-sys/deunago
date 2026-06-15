@@ -899,19 +899,23 @@ const clientTotalSpent = clientTasks
       }
     >
      <div className="chat-sender-row">
-  {msg.senderId === user.id && profile?.profilePhotoUrl && (
-   <img
-  src={profile.profilePhotoUrl}
-  alt="Perfil"
-  className="chat-avatar"
-  style={{
-    width: "28px",
-    height: "28px",
-    borderRadius: "50%",
-    objectFit: "cover"
-  }}
-/>
-  )}
+{(msg.sender?.profilePhotoUrl || profile?.profilePhotoUrl) && (
+  <img
+    src={
+      msg.senderId === user.id
+        ? profile?.profilePhotoUrl
+        : msg.sender?.profilePhotoUrl
+    }
+    alt="Perfil"
+    className="chat-avatar"
+    style={{
+      width: "28px",
+      height: "28px",
+      borderRadius: "50%",
+      objectFit: "cover",
+    }}
+  />
+)}
 
   <span className="chat-sender">
     {msg.senderId === user.id ? "Tú" : "Otro"}
