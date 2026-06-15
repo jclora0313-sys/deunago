@@ -937,10 +937,20 @@ const clientTotalSpent = clientTasks
         <div className="logo">DeUnaGo</div>
 
         {user && (
-          <div className="user-info">
-            {user.name} • {user.role}
-          </div>
-        )}
+  <div className="user-info">
+    {profile?.profilePhotoUrl && (
+      <img
+        src={profile.profilePhotoUrl}
+        alt="Perfil"
+        className="navbar-avatar"
+      />
+    )}
+
+    <span>
+      {user.name} • {user.role}
+    </span>
+  </div>
+)}
       </div>
 
       {user && (

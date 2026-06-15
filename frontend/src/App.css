@@ -1368,3 +1368,17 @@ strong {
   font-size: 26px;
   color: var(--gold-light);
 }
+.navbar-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 2px solid var(--gold);
+  margin-right: 8px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
