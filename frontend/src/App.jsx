@@ -4,6 +4,8 @@ import { io } from "socket.io-client";
 import "./App.css";
 import MapView from "./components/MapView";
 import SelectLocationMap from "./components/SelectLocationMap";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
 
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -2073,6 +2075,29 @@ const clientTotalSpent = clientTasks
     </div>
   </div>
 )}
+
+<div className="card">
+  <h2>🗺️ Mapa en vivo</h2>
+  <p>Vista inicial de Santo Domingo para monitoreo operativo.</p>
+
+  <div className="admin-live-map">
+    <MapContainer
+      center={[18.4861, -69.9312]}
+      zoom={12}
+      scrollWheelZoom={false}
+      style={{ height: "360px", width: "100%", borderRadius: "22px" }}
+    >
+      <TileLayer
+        attribution='&copy; OpenStreetMap contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      <Marker position={[18.4861, -69.9312]}>
+        <Popup>📍 Centro operativo DeUnaGo</Popup>
+      </Marker>
+    </MapContainer>
+  </div>
+</div>
 
 {adminStats && (
   <div className="finance-highlight">

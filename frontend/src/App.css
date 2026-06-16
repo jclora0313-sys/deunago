@@ -1418,3 +1418,9 @@ strong {
   background: rgba(212, 160, 23, 0.16);
   color: var(--gold-light);
 }
+.admin-live-map {
+  margin-top: 18px;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
