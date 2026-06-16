@@ -687,6 +687,40 @@ app.patch("/admin/users/:id/validate-license", authMiddleware, requireRole("ADMI
   }
 });
 
+app.get(
+  "/admin/runners/live",
+  authMiddleware,
+  requireRole("ADMIN"),
+  async (req, res) => {
+    try {
+      const runners = await prisma.user.findMany({
+        where: {
+          role: "RUNNER",
+          isAvailable: true,
+          lastLat: { not: null },
+          lastLng: { not: null },
+        },
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          profilePhotoUrl: true,
+          lastLat: true,
+          lastLng: true,
+          isAvailable: true,
+        },
+      });
+
+      res.json(runners);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error cargando runners en vivo",
+      });
+    }
+  }
+);
+
 app.patch(
   "/admin/users/:id/approve-runner",
   authMiddleware,

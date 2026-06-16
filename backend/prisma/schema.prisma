@@ -26,6 +26,8 @@ mainAddress     String?
 vehicleType String?
 vehiclePlate String?
 bio          String?
+lastLat Float?
+lastLng Float?
 }
 
 model Task {

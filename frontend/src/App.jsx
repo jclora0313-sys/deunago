@@ -52,6 +52,7 @@ function App() {
   const [activeChatTaskId, setActiveChatTaskId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState("");
+  const [liveRunners, setLiveRunners] = useState([]);
 
   const [identificationFile, setIdentificationFile] = useState(null);
   const [licenseFile, setLicenseFile] = useState(null);
@@ -766,6 +767,23 @@ const marcarRunnerPagado = async (taskId) => {
     cargarEstadisticasAdmin();
   } catch (error) {
     showToast(error.response?.data?.message || "Error validando pago", "error");
+  }
+};
+
+const cargarRunnersEnVivo = async () => {
+  try {
+    const res = await axios.get(
+      `${API_URL}/admin/runners/live`,
+      getAuthHeaders()
+    );
+
+    setLiveRunners(res.data);
+    showToast("Runners en vivo cargados", "success");
+  } catch (error) {
+    showToast(
+      error.response?.data?.message || "Error cargando runners en vivo",
+      "error"
+    );
   }
 };
 
@@ -2079,6 +2097,9 @@ const clientTotalSpent = clientTasks
 <div className="card">
   <h2>🗺️ Mapa en vivo</h2>
   <p>Vista inicial de Santo Domingo para monitoreo operativo.</p>
+  <button onClick={cargarRunnersEnVivo} className="button button-primary">
+  🛵 Cargar runners en vivo
+</button>
 
   <div className="admin-live-map">
     <MapContainer
@@ -2098,6 +2119,21 @@ const clientTotalSpent = clientTasks
     </MapContainer>
   </div>
 </div>
+
+{liveRunners.map((runner) => (
+  <Marker
+    key={runner.id}
+    position={[runner.lastLat, runner.lastLng]}
+  >
+    <Popup>
+      🛵 {runner.name}
+      <br />
+      {runner.phone}
+      <br />
+      Disponible
+    </Popup>
+  </Marker>
+))}
 
 {adminStats && (
   <div className="finance-highlight">
