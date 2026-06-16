@@ -64,7 +64,7 @@ const [profilePhotoFile, setProfilePhotoFile] = useState(null);
 const [vehicleType, setVehicleType] = useState("");
 const [vehiclePlate, setVehiclePlate] = useState("");
 const [bio, setBio] = useState("");
-
+const [showOnlyPendingUsers, setShowOnlyPendingUsers] = useState(false);
 const getAuthHeaders = () => ({
   headers: {
     Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -714,6 +714,25 @@ const subirComprobantePago = async (taskId) => {
     }
   };
 
+const aprobarRunner = async (userId) => {
+  try {
+    await axios.patch(
+      `${API_URL}/admin/users/${userId}/approve-runner`,
+      {},
+      getAuthHeaders()
+    );
+
+    showToast("Runner aprobado correctamente", "success");
+    cargarUsuarios();
+    cargarEstadisticasAdmin();
+  } catch (error) {
+    showToast(
+      error.response?.data?.message || "Error aprobando runner",
+      "error"
+    );
+  }
+};
+
   const validarPagoMandado = async (taskId) => {
   try {
     await axios.patch(
@@ -793,17 +812,7 @@ const marcarRunnerPagado = async (taskId) => {
   setAdminTasks(res.data);
 };
 
-  const aprobarRunner = async (userId) => {
-    await axios.patch(
-      `${API_URL}/admin/users/${userId}/approve`,
-      {},
-      getAuthHeaders()
-    );
-
-    cargarUsuarios();
-    cargarEstadisticasAdmin();
-    cargarNotificaciones();
-  };
+  
 
   const getBadgeClass = (status) => {
     if (status === "OPEN") return "badge badge-open";
@@ -2023,8 +2032,28 @@ const clientTotalSpent = clientTasks
   🧾 Ver pagos
 </button>
 {users.length > 0 && (
-  <div className="card">
-    <h2>📋 Pendientes de revisión</h2>
+ <div className="card">
+  <h2>📋 Pendientes de revisión</h2>
+
+  <button
+    onClick={() => {
+      document.getElementById("admin-users-section")?.scrollIntoView({
+        behavior: "smooth",
+      });
+    }}
+    className="button button-primary"
+  >
+    Ver usuarios pendientes
+    </button>
+<button
+  onClick={() => setShowOnlyPendingUsers(!showOnlyPendingUsers)}
+  className="button button-success"
+>
+  {showOnlyPendingUsers
+    ? "Ver todos los usuarios"
+    : "Ver solo pendientes"}
+</button>
+
 
     <div className="profile-stats-grid">
       <div className="profile-stat-card">
@@ -2290,13 +2319,27 @@ const clientTotalSpent = clientTasks
 
 
             <div className="card">
-              <h2 className="admin-section-title">👥 Usuarios</h2>
+              <h2
+  id="admin-users-section"
+  className="admin-section-title"
+>
+  👥 Usuarios
+</h2>
 
               {users.length === 0 && (
                 <p className="empty">No hay usuarios cargados.</p>
               )}
 
-              {users.map((u) => (
+              {users
+  .filter((u) => {
+    if (!showOnlyPendingUsers) return true;
+
+    return (
+      u.role === "RUNNER" &&
+      (!u.identificationValid || !u.licenseValid)
+    );
+  })
+  .map((u) => (
                 <div key={u.id} className="admin-user-card">
                   <div className="admin-user-header">
   <div className="admin-user-main">
@@ -2384,6 +2427,15 @@ const clientTotalSpent = clientTasks
                           className="button button-primary"
                         >
                           🚗 Validar licencia
+                        </button>
+                      )}
+
+                      {(!u.identificationValid || !u.licenseValid || u.status !== "APPROVED") && (
+                        <button
+                          onClick={() => aprobarRunner(u.id)}
+                          className="button button-success"
+                        >
+                          ✅ Aprobar runner
                         </button>
                       )}
                     </>

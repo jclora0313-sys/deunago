@@ -673,6 +673,8 @@ app.patch("/admin/users/:id/validate-license", authMiddleware, requireRole("ADMI
       data: { licenseValid: true },
     });
 
+
+
     await createNotification(
       updatedUser.id,
       "Tu licencia de conducir fue validada por el administrador."
@@ -684,6 +686,33 @@ app.patch("/admin/users/:id/validate-license", authMiddleware, requireRole("ADMI
     res.status(400).json({ message: error.message || "Error validando licencia" });
   }
 });
+
+app.patch(
+  "/admin/users/:id/approve-runner",
+  authMiddleware,
+  requireRole("ADMIN"),
+  async (req, res) => {
+    try {
+      const userId = Number(req.params.id);
+
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          status: "APPROVED",
+          identificationValid: true,
+          licenseValid: true,
+        },
+      });
+
+      res.json(updatedUser);
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        message: "Error aprobando runner",
+      });
+    }
+  }
+);
 
 app.patch(
   "/admin/tasks/:id/pay-runner",
