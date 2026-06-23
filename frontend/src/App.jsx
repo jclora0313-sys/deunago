@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 import "./App.css";
 import MapView from "./components/MapView";
 import SelectLocationMap from "./components/SelectLocationMap";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 
@@ -32,6 +32,7 @@ function App() {
   const [clientTasks, setClientTasks] = useState([]);
   const [earnings, setEarnings] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [activeTasks, setActiveTasks] = useState([]);
 
   const [clientFilter, setClientFilter] = useState("ALL");
   const [runnerFilter, setRunnerFilter] = useState("ALL");
@@ -99,6 +100,32 @@ const showToast = (message, type = "success") => {
 
     setTasks((prev) => prev.filter((task) => task.id !== updatedTask.id));
   };
+
+  useEffect(() => {
+  if (user?.role !== "RUNNER") return;
+
+  actualizarUbicacionRunnerEnVivo();
+
+  const interval = setInterval(() => {
+    actualizarUbicacionRunnerEnVivo();
+  }, 15000);
+
+  return () => clearInterval(interval);
+}, [user?.role]);
+
+useEffect(() => {
+  if (user?.role !== "ADMIN") return;
+
+  cargarRunnersEnVivo();
+  cargarMandadosActivos();
+
+  const interval = setInterval(() => {
+    cargarRunnersEnVivo();
+    cargarMandadosActivos();
+  }, 15000);
+
+  return () => clearInterval(interval);
+}, [user?.role]);
 
   useEffect(() => {
     if (user?.id) {
@@ -690,6 +717,7 @@ const subirComprobantePago = async (taskId) => {
       showToast("Identificación validada", "success");
       cargarUsuarios();
       cargarEstadisticasAdmin();
+      cargarMandadosActivos();
     } catch (error) {
       showToast(
   error.response?.data?.message || "Error validando identificación",
@@ -770,6 +798,28 @@ const marcarRunnerPagado = async (taskId) => {
   }
 };
 
+const actualizarUbicacionRunnerEnVivo = async () => {
+  if (!navigator.geolocation) {
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      await axios.patch(
+        `${API_URL}/runners/location`,
+        {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        },
+        getAuthHeaders()
+      );
+    },
+    () => {
+      console.log("No se pudo obtener ubicación del runner");
+    }
+  );
+};
+
 const cargarRunnersEnVivo = async () => {
   try {
     const res = await axios.get(
@@ -830,6 +880,25 @@ const cargarRunnersEnVivo = async () => {
   const cargarMandadosAdmin = async () => {
   const res = await axios.get(`${API_URL}/admin/tasks`, getAuthHeaders());
   setAdminTasks(res.data);
+};
+const cargarMandadosActivos = async () => {
+  try {
+    const res = await axios.get(
+      `${API_URL}/admin/tasks`,
+      getAuthHeaders()
+    );
+
+    const activos = res.data.filter(
+      (t) =>
+        t.status === "ACCEPTED" ||
+        t.status === "PICKED_UP" ||
+        t.status === "ON_THE_WAY"
+    );
+
+    setActiveTasks(activos);
+  } catch (error) {
+    console.error(error);
+  }
 };
 
   
@@ -2116,6 +2185,77 @@ const clientTotalSpent = clientTasks
       <Marker position={[18.4861, -69.9312]}>
         <Popup>📍 Centro operativo DeUnaGo</Popup>
       </Marker>
+ {liveRunners.map((runner) => (
+  <Marker
+    key={`runner-${runner.id}`}
+    position={[runner.lastLat, runner.lastLng]}
+  >
+    <Popup>
+      🛵 {runner.name}
+      <br />
+      Runner en vivo
+    </Popup>
+  </Marker>
+))}
+
+{activeTasks
+  .filter((task) => task.pickupLat && task.pickupLng)
+  .map((task) => (
+    <Marker
+      key={`pickup-${task.id}`}
+      position={[task.pickupLat, task.pickupLng]}
+    >
+    <Popup>
+      📦 Recogida
+      <br />
+      Mandado #{task.id}
+    </Popup>
+  </Marker>
+))}
+{activeTasks
+  .filter((task) => task.dropoffLat && task.dropoffLng)
+  .map((task) => (
+    <Marker
+      key={`dropoff-${task.id}`}
+      position={[task.dropoffLat, task.dropoffLng]}
+    >
+    <Popup>
+      🏁 Entrega
+      <br />
+      Mandado #{task.id}
+    </Popup>
+  </Marker>
+))}
+{activeTasks
+  .filter((task) => task.runnerLat && task.runnerLng)
+  .map((task) => (
+    <Marker
+      key={`runner-task-${task.id}`}
+      position={[task.runnerLat, task.runnerLng]}
+    >
+    <Popup>
+      🛵 Runner asignado
+      <br />
+      Mandado #{task.id}
+      <br />
+      Estado: {task.status}
+    </Popup>
+  </Marker>
+))}
+{activeTasks.map((task) => (
+  <Marker
+    key={`runner-task-${task.id}`}
+    position={[task.runnerLat, task.runnerLng]}
+  >
+    <Popup>
+      🛵 Runner asignado
+      <br />
+      Mandado #{task.id}
+      <br />
+      Estado: {task.status}
+    </Popup>
+  </Marker>
+))}
     </MapContainer>
   </div>
 </div>
@@ -2134,6 +2274,24 @@ const clientTotalSpent = clientTasks
     </Popup>
   </Marker>
 ))}
+
+{activeTasks
+  .filter(
+    (task) =>
+      task.pickupLat &&
+      task.pickupLng &&
+      task.dropoffLat &&
+      task.dropoffLng
+  )
+  .map((task) => (
+    <Polyline
+      key={`route-${task.id}`}
+      positions={[
+        [task.pickupLat, task.pickupLng],
+        [task.dropoffLat, task.dropoffLng],
+      ]}
+    />
+  ))}
 
 {adminStats && (
   <div className="finance-highlight">

@@ -687,6 +687,37 @@ app.patch("/admin/users/:id/validate-license", authMiddleware, requireRole("ADMI
   }
 });
 
+app.patch(
+  "/runners/location",
+  authMiddleware,
+  requireRole("RUNNER"),
+  async (req, res) => {
+    try {
+      const { lat, lng } = req.body;
+
+      await prisma.user.update({
+        where: {
+          id: req.user.id,
+        },
+        data: {
+          lastLat: lat,
+          lastLng: lng,
+        },
+      });
+
+      res.json({
+        message: "Ubicación actualizada",
+      });
+    } catch (error) {
+      console.log(error);
+
+      res.status(500).json({
+        message: "Error actualizando ubicación",
+      });
+    }
+  }
+);
+
 app.get(
   "/admin/runners/live",
   authMiddleware,
