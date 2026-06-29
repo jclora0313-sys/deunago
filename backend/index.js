@@ -19,7 +19,13 @@ const server = http.createServer(app);
 const FRONTEND_URL = process.env.FRONTEND_URL || "*";
 const JWT_SECRET = process.env.JWT_SECRET || "mi_clave_secreta";
 
+const DEFAULT_CITY = {
+  name: "Santiago de los Caballeros",
+  lat: 19.4517,
+  lng: -70.6970,
+};
 
+const SERVICE_RADIUS_KM = 18;
 
 
 const io = new Server(server, {
@@ -98,6 +104,34 @@ function authMiddleware(req, res, next) {
   } catch {
     return res.status(401).json({ message: "Token inválido" });
   }
+}
+
+function calcularDistanciaKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = ((Number(lat2) - Number(lat1)) * Math.PI) / 180;
+  const dLng = ((Number(lng2) - Number(lng1)) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((Number(lat1) * Math.PI) / 180) *
+      Math.cos((Number(lat2) * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+function estaDentroDeSantiago(lat, lng) {
+  const distancia = calcularDistanciaKm(
+    DEFAULT_CITY.lat,
+    DEFAULT_CITY.lng,
+    lat,
+    lng
+  );
+
+  return distancia <= SERVICE_RADIUS_KM;
 }
 
 function requireRole(role) {
@@ -1065,6 +1099,16 @@ app.post("/tasks", authMiddleware, requireRole("CLIENT"), async (req, res) => {
         message: "La descripción es obligatoria",
       });
     }
+
+if (
+  !estaDentroDeSantiago(pickupLat, pickupLng) ||
+  !estaDentroDeSantiago(dropoffLat, dropoffLng)
+) {
+  return res.status(400).json({
+    message:
+      "Por el momento DeUnaGo solo está disponible en Santiago de los Caballeros.",
+  });
+}
 
     const task = await prisma.task.create({
       data: {

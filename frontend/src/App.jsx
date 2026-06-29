@@ -4,12 +4,36 @@ import { io } from "socket.io-client";
 import "./App.css";
 import MapView from "./components/MapView";
 import SelectLocationMap from "./components/SelectLocationMap";
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 
 const API_URL = import.meta.env.VITE_API_URL;
 const socket = io(API_URL);
+
+const DEFAULT_CITY = {
+  name: "Santiago de los Caballeros",
+  lat: 19.4517,
+  lng: -70.6970,
+  zoom: 13,
+};
+
+const SERVICE_RADIUS_KM = 18;
+
+function MapFocus({ selectedTask }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!selectedTask?.pickupLat || !selectedTask?.pickupLng) return;
+
+    map.setView(
+      [selectedTask.pickupLat, selectedTask.pickupLng],
+      15
+    );
+  }, [selectedTask, map]);
+
+  return null;
+}
 
 function App() {
   const [mode, setMode] = useState("login");
@@ -33,6 +57,7 @@ function App() {
   const [earnings, setEarnings] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [activeTasks, setActiveTasks] = useState([]);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const [clientFilter, setClientFilter] = useState("ALL");
   const [runnerFilter, setRunnerFilter] = useState("ALL");
@@ -166,6 +191,17 @@ useEffect(() => {
       }
     };
   }, []);
+
+  const estaDentroDeSantiago = (lat, lng) => {
+  const distancia = calcularDistanciaKm(
+    DEFAULT_CITY.lat,
+    DEFAULT_CITY.lng,
+    lat,
+    lng
+  );
+
+  return distancia <= SERVICE_RADIUS_KM;
+};
 
   const calcularDistanciaKm = (lat1, lng1, lat2, lng2) => {
     if (!lat1 || !lng1 || !lat2 || !lng2) return 0;
@@ -453,6 +489,17 @@ const subirFotoPerfil = async () => {
         alert("Selecciona el destino tocando el mapa");
         return;
       }
+
+      if (
+  !estaDentroDeSantiago(Number(pickupLat), Number(pickupLng)) ||
+  !estaDentroDeSantiago(Number(dropoffLat), Number(dropoffLng))
+) {
+  showToast(
+    "Por el momento DeUnaGo solo está disponible en Santiago de los Caballeros.",
+    "error"
+  );
+  return;
+}
 
       await axios.post(
         `${API_URL}/tasks`,
@@ -2165,15 +2212,15 @@ const clientTotalSpent = clientTasks
 
 <div className="card">
   <h2>🗺️ Mapa en vivo</h2>
-  <p>Vista inicial de Santo Domingo para monitoreo operativo.</p>
+  <p>Vista operativa de Santiago de los Caballeros.</p>
   <button onClick={cargarRunnersEnVivo} className="button button-primary">
   🛵 Cargar runners en vivo
 </button>
 
   <div className="admin-live-map">
     <MapContainer
-      center={[18.4861, -69.9312]}
-      zoom={12}
+      center={[DEFAULT_CITY.lat, DEFAULT_CITY.lng]}
+zoom={DEFAULT_CITY.zoom}
       scrollWheelZoom={false}
       style={{ height: "360px", width: "100%", borderRadius: "22px" }}
     >
@@ -2182,9 +2229,13 @@ const clientTotalSpent = clientTasks
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-      <Marker position={[18.4861, -69.9312]}>
-        <Popup>📍 Centro operativo DeUnaGo</Popup>
-      </Marker>
+<MapFocus selectedTask={selectedTask} />
+
+     <Marker position={[DEFAULT_CITY.lat, DEFAULT_CITY.lng]}>
+    <Popup>
+        📍 Centro operativo DeUnaGo - {DEFAULT_CITY.name}
+    </Popup>
+</Marker>
  {liveRunners.map((runner) => (
   <Marker
     key={`runner-${runner.id}`}
@@ -2259,6 +2310,40 @@ const clientTotalSpent = clientTasks
     </MapContainer>
   </div>
 </div>
+
+{activeTasks.length > 0 && (
+  <div className="card">
+    <h2>📦 Mandados activos</h2>
+
+    {activeTasks.map((task) => (
+      <div key={task.id} className="task-card">
+        <div className={getBadgeClass(task.status)}>
+          {getStatusText(task.status)}
+        </div>
+
+        <h3>Mandado #{task.id}</h3>
+
+        <p>{task.description}</p>
+        <p>Precio: RD${task.estimatedPrice}</p>
+        <p>Ganancia runner: RD${task.runnerEarnings}</p>
+
+        <button
+  onClick={() => setSelectedTask(task)}
+  className="button button-success"
+>
+  Ver en mapa
+</button>
+
+        <button
+          onClick={() => cargarMandadosActivos()}
+          className="button button-primary"
+        >
+          Actualizar
+        </button>
+      </div>
+    ))}
+  </div>
+)}
 
 {liveRunners.map((runner) => (
   <Marker
