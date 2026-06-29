@@ -2266,7 +2266,7 @@ zoom={DEFAULT_CITY.zoom}
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
 
-<MapFocus selectedTask={selectedTask} />
+
 
      <Marker position={[DEFAULT_CITY.lat, DEFAULT_CITY.lng]}>
     <Popup>
