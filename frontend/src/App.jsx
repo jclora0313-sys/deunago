@@ -6,6 +6,8 @@ import MapView from "./components/MapView";
 import SelectLocationMap from "./components/SelectLocationMap";
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import logoFull from "./assets/logo-full.png";
+import logoIcon from "./assets/logo-icon.png";
 
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -38,6 +40,7 @@ function MapFocus({ selectedTask }) {
 function App() {
   const [mode, setMode] = useState("login");
   const [showNotificationsPanel, setShowNotificationsPanel] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -151,6 +154,14 @@ useEffect(() => {
 
   return () => clearInterval(interval);
 }, [user?.role]);
+
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setShowSplash(false);
+  }, 2500);
+
+  return () => clearTimeout(timer);
+}, []);
 
   useEffect(() => {
     if (user?.id) {
@@ -1112,6 +1123,30 @@ const clientTotalSpent = clientTasks
       </div>
     );
   }
+
+if (showSplash) {
+  return (
+   <div className="splash-screen">
+
+  <img
+    src={logoIcon}
+    alt="DeUnaGo"
+    className="splash-icon"
+  />
+
+  <img
+    src={logoFull}
+    alt="DeUnaGo"
+    className="splash-logo"
+  />
+
+  <p className="splash-text">
+    Tu mandado en minutos.
+  </p>
+
+</div>
+  );
+}
 
   return (
   <div className="page">
