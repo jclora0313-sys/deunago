@@ -2273,18 +2273,7 @@ zoom={DEFAULT_CITY.zoom}
         📍 Centro operativo DeUnaGo - {DEFAULT_CITY.name}
     </Popup>
 </Marker>
- {liveRunners.map((runner) => (
-  <Marker
-    key={`runner-${runner.id}`}
-    position={[runner.lastLat, runner.lastLng]}
-  >
-    <Popup>
-      🛵 {runner.name}
-      <br />
-      Runner en vivo
-    </Popup>
-  </Marker>
-))}
+
 
 {activeTasks
   .filter((task) => task.pickupLat && task.pickupLng)
@@ -2397,23 +2386,7 @@ zoom={DEFAULT_CITY.zoom}
   </Marker>
 ))}
 
-{activeTasks
-  .filter(
-    (task) =>
-      task.pickupLat &&
-      task.pickupLng &&
-      task.dropoffLat &&
-      task.dropoffLng
-  )
-  .map((task) => (
-    <Polyline
-      key={`route-${task.id}`}
-      positions={[
-        [task.pickupLat, task.pickupLng],
-        [task.dropoffLat, task.dropoffLng],
-      ]}
-    />
-  ))}
+
 
 {adminStats && (
   <div className="finance-highlight">
