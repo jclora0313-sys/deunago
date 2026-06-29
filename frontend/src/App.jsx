@@ -130,7 +130,6 @@ const showToast = (message, type = "success") => {
   };
 
   useEffect(() => {
-    console.log("👀 useEffect del runner ejecutado");
   if (user?.role !== "RUNNER") return;
 
   actualizarUbicacionRunnerEnVivo();
