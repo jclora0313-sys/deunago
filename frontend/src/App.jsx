@@ -130,6 +130,7 @@ const showToast = (message, type = "success") => {
   };
 
   useEffect(() => {
+    console.log("👀 useEffect del runner ejecutado");
   if (user?.role !== "RUNNER") return;
 
   actualizarUbicacionRunnerEnVivo();
@@ -857,6 +858,7 @@ const marcarRunnerPagado = async (taskId) => {
 };
 
 const actualizarUbicacionRunnerEnVivo = async () => {
+  console.log("🚀 Entró a actualizarUbicacionRunnerEnVivo");
   if (!navigator.geolocation) {
     return;
   }
