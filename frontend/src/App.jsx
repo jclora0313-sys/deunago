@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 import "./App.css";
 import MapView from "./components/MapView";
 import SelectLocationMap from "./components/SelectLocationMap";
-
+import AdminLiveMap from "./components/AdminLiveMap";
 
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -2261,10 +2261,7 @@ if (showSplash) {
     ))}
   </div>
 )}
-
-
-
-
+<AdminLiveMap defaultCity={DEFAULT_CITY} />
 {adminStats && (
   <div className="finance-highlight">
     <h2>💰 Resumen financiero</h2>
