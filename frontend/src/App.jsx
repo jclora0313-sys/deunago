@@ -2338,13 +2338,7 @@ zoom={DEFAULT_CITY.zoom}
         <p>Precio: RD${task.estimatedPrice}</p>
         <p>Ganancia runner: RD${task.runnerEarnings}</p>
 
-        <button
-  onClick={() => setSelectedTask(task)}
-  className="button button-success"
->
-  Ver en mapa
-</button>
-
+    
         <button
           onClick={() => cargarMandadosActivos()}
           className="button button-primary"
