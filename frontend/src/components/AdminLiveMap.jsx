@@ -86,6 +86,23 @@ function AdminLiveMap({ defaultCity, liveRunners = [], activeTasks = [] }) {
       ]}
     />
   ))}
+
+  {activeTasks
+  .filter((task) => task.runnerLat && task.runnerLng)
+  .map((task) => (
+    <Marker
+      key={`runner-task-${task.id}`}
+      position={[task.runnerLat, task.runnerLng]}
+    >
+      <Popup>
+        🛵 Runner asignado
+        <br />
+        Mandado #{task.id}
+        <br />
+        Estado: {task.status}
+      </Popup>
+    </Marker>
+  ))}
         </MapContainer>
       </div>
     </div>
