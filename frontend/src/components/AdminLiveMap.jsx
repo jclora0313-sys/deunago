@@ -105,6 +105,22 @@ function AdminLiveMap({ defaultCity, liveRunners = [], activeTasks = [] }) {
   ))}
         </MapContainer>
       </div>
+
+{activeTasks.length > 0 && (
+  <div className="admin-map-active-list">
+    <h3>📦 Mandados activos</h3>
+
+    {activeTasks.map((task) => (
+      <div key={task.id} className="task-card">
+        <strong>Mandado #{task.id}</strong>
+        <p>{task.description}</p>
+        <p>Estado: {task.status}</p>
+        <p>Precio: RD${task.estimatedPrice}</p>
+      </div>
+    ))}
+  </div>
+)}
+
     </div>
   );
 }
