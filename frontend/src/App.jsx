@@ -2261,7 +2261,10 @@ if (showSplash) {
     ))}
   </div>
 )}
-<AdminLiveMap defaultCity={DEFAULT_CITY} />
+<AdminLiveMap
+  defaultCity={DEFAULT_CITY}
+  liveRunners={liveRunners}
+/>
 {adminStats && (
   <div className="finance-highlight">
     <h2>💰 Resumen financiero</h2>

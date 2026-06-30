@@ -1,7 +1,7 @@
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-function AdminLiveMap({ defaultCity }) {
+function AdminLiveMap({ defaultCity, liveRunners = [] }) {
   return (
     <div className="card">
       <h2>🗺️ Mapa en vivo</h2>
@@ -22,6 +22,22 @@ function AdminLiveMap({ defaultCity }) {
           <Marker position={[defaultCity.lat, defaultCity.lng]}>
             <Popup>📍 Centro operativo DeUnaGo - {defaultCity.name}</Popup>
           </Marker>
+          {liveRunners
+  .filter((runner) => runner.lastLat && runner.lastLng)
+  .map((runner) => (
+    <Marker
+      key={`runner-${runner.id}`}
+      position={[runner.lastLat, runner.lastLng]}
+    >
+      <Popup>
+        🛵 {runner.name}
+        <br />
+        {runner.phone}
+        <br />
+        Disponible
+      </Popup>
+    </Marker>
+  ))}
         </MapContainer>
       </div>
     </div>
