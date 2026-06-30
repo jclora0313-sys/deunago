@@ -4,7 +4,7 @@ import { io } from "socket.io-client";
 import "./App.css";
 import MapView from "./components/MapView";
 import SelectLocationMap from "./components/SelectLocationMap";
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -22,20 +22,6 @@ const DEFAULT_CITY = {
 
 const SERVICE_RADIUS_KM = 18;
 
-function MapFocus({ selectedTask }) {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!selectedTask?.pickupLat || !selectedTask?.pickupLng) return;
-
-    map.setView(
-      [selectedTask.pickupLat, selectedTask.pickupLng],
-      15
-    );
-  }, [selectedTask, map]);
-
-  return null;
-}
 
 function App() {
   const [mode, setMode] = useState("login");
@@ -60,7 +46,7 @@ function App() {
   const [earnings, setEarnings] = useState(null);
   const [notifications, setNotifications] = useState([]);
   const [activeTasks, setActiveTasks] = useState([]);
-  const [selectedTask, setSelectedTask] = useState(null);
+ 
 
   const [clientFilter, setClientFilter] = useState("ALL");
   const [runnerFilter, setRunnerFilter] = useState("ALL");
