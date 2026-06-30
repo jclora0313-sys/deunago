@@ -1,7 +1,7 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
-function AdminLiveMap({ defaultCity, liveRunners = [] }) {
+function AdminLiveMap({ defaultCity, liveRunners = [], activeTasks = [] }) {
   return (
     <div className="card">
       <h2>🗺️ Mapa en vivo</h2>
@@ -37,6 +37,54 @@ function AdminLiveMap({ defaultCity, liveRunners = [] }) {
         Disponible
       </Popup>
     </Marker>
+  ))}
+
+  {activeTasks
+  .filter((task) => task.pickupLat && task.pickupLng)
+  .map((task) => (
+    <Marker
+      key={`pickup-${task.id}`}
+      position={[task.pickupLat, task.pickupLng]}
+    >
+      <Popup>
+        📦 Recogida
+        <br />
+        Mandado #{task.id}
+      </Popup>
+    </Marker>
+  ))}
+
+  {activeTasks
+  .filter((task) => task.dropoffLat && task.dropoffLng)
+  .map((task) => (
+    <Marker
+      key={`dropoff-${task.id}`}
+      position={[task.dropoffLat, task.dropoffLng]}
+    >
+      <Popup>
+        🏁 Entrega
+        <br />
+        Mandado #{task.id}
+      </Popup>
+    </Marker>
+  ))}
+
+  {activeTasks
+  .filter(
+    (task) =>
+      task.pickupLat &&
+      task.pickupLng &&
+      task.dropoffLat &&
+      task.dropoffLng
+  )
+  .map((task) => (
+    <Polyline
+      key={`route-${task.id}`}
+      positions={[
+        [task.pickupLat, task.pickupLng],
+        [task.dropoffLat, task.dropoffLng],
+      ]}
+    />
   ))}
         </MapContainer>
       </div>

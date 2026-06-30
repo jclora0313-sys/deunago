@@ -2264,6 +2264,7 @@ if (showSplash) {
 <AdminLiveMap
   defaultCity={DEFAULT_CITY}
   liveRunners={liveRunners}
+  activeTasks={activeTasks}
 />
 {adminStats && (
   <div className="finance-highlight">
