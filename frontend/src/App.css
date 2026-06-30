@@ -1521,3 +1521,77 @@ strong {
   max-width: 80%;
   filter: drop-shadow(0 18px 35px rgba(0, 0, 0, 0.35));
 }
+
+.landing-rating{
+    margin:20px 0;
+    color:#f8d14d;
+    font-size:22px;
+    font-weight:700;
+}
+
+.landing-rating span{
+    display:block;
+    color:white;
+    font-size:15px;
+    margin-top:8px;
+}
+
+.landing-benefits{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    margin-top:35px;
+    font-size:17px;
+}
+
+.landing-benefits div{
+    background:rgba(255,255,255,.05);
+    padding:15px 20px;
+    border-radius:16px;
+    border:1px solid rgba(255,255,255,.08);
+}
+
+.landing-orbits {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.landing-orbits span {
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  border: 1px solid rgba(212, 160, 23, 0.18);
+  border-radius: 999px;
+  animation: orbitFloat 12s ease-in-out infinite;
+}
+
+.landing-orbits span:nth-child(1) {
+  top: 12%;
+  left: 8%;
+}
+
+.landing-orbits span:nth-child(2) {
+  right: 10%;
+  top: 22%;
+  animation-delay: 2s;
+}
+
+.landing-orbits span:nth-child(3) {
+  bottom: 10%;
+  left: 45%;
+  animation-delay: 4s;
+}
+
+@keyframes orbitFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.35;
+  }
+
+  50% {
+    transform: translateY(-24px) scale(1.08);
+    opacity: 0.75;
+  }
+}

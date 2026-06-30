@@ -1215,23 +1215,69 @@ if (showSplash) {
 )}
 <div className="landing-logo-wrap">
   <img src={logoFull} alt="DeUnaGo" className="landing-logo-img" />
+
 </div>
+
+<div className="landing-rating">
+  ⭐⭐⭐⭐⭐
+  <span>4.9/5 • Cientos de mandados completados</span>
+</div>
+
+
       <div className="container">
  {!user && (
-  <div className="landing-shell">
+  <div className="landing-shell landing-modern">
+    <div className="landing-orbits">
+  <span></span>
+  <span></span>
+  <span></span>
+</div>
     <section className="landing-hero">
-      <div className="landing-badge">
-        🚀 Mandados rápidos y seguros
-      </div>
+  <div className="landing-badge">
+  🇩🇴 Disponible actualmente en Santiago de los Caballeros
+</div>
 
-      <h1>
-        Tu mandado en minutos
-      </h1>
+      <h1 className="landing-title">
+  El mandadero que necesitas,
+  <span> cuando lo necesitas.</span>
+</h1>
 
-      <p>
-        Conecta con mandaderos disponibles, paga digitalmente,
-        rastrea tu pedido y recibe comprobante de entrega.
-      </p>
+<p className="landing-description">
+  Solicita mandados en Santiago de los Caballeros en pocos segundos.
+  Sigue el recorrido en tiempo real, conversa con tu mandadero y
+  recibe todo con seguridad y rapidez.
+</p>
+
+<div className="landing-stats">
+
+  <div className="landing-stat">
+    <strong>⚡</strong>
+    <span>Entrega rápida</span>
+  </div>
+
+  <div className="landing-stat">
+    <strong>🛵</strong>
+    <span>Runners verificados</span>
+  </div>
+
+  <div className="landing-stat">
+    <strong>📍</strong>
+    <span>Tracking en vivo</span>
+  </div>
+
+</div>
+
+<div className="landing-benefits">
+
+  <div>✅ Seguimiento en tiempo real</div>
+
+  <div>🛵 Mandaderos previamente verificados</div>
+
+  <div>🔒 Pagos seguros y comprobantes digitales</div>
+
+  <div>⚡ Servicio disponible en Santiago</div>
+
+</div>
 
       <div className="landing-actions">
         <button
