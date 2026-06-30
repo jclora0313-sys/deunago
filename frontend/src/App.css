@@ -1512,3 +1512,12 @@ strong {
 .admin-map-active-list {
   margin-top: 20px;
 }
+.landing-logo-wrap {
+  margin-bottom: 20px;
+}
+
+.landing-logo-img {
+  width: 240px;
+  max-width: 80%;
+  filter: drop-shadow(0 18px 35px rgba(0, 0, 0, 0.35));
+}

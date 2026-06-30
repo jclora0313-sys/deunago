@@ -1213,6 +1213,9 @@ if (showSplash) {
     ))}
   </div>
 )}
+<div className="landing-logo-wrap">
+  <img src={logoFull} alt="DeUnaGo" className="landing-logo-img" />
+</div>
       <div className="container">
  {!user && (
   <div className="landing-shell">
