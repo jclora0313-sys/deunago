@@ -4,8 +4,8 @@ import { io } from "socket.io-client";
 import "./App.css";
 import MapView from "./components/MapView";
 import SelectLocationMap from "./components/SelectLocationMap";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+
+
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
 
@@ -2232,95 +2232,7 @@ if (showSplash) {
   </div>
 )}
 
-<div className="card">
-  <h2>🗺️ Mapa en vivo</h2>
-  <p>Vista operativa de Santiago de los Caballeros.</p>
-  <button onClick={cargarRunnersEnVivo} className="button button-primary">
-  🛵 Cargar runners en vivo
-</button>
 
-  <div className="admin-live-map">
-    <MapContainer
-      center={[DEFAULT_CITY.lat, DEFAULT_CITY.lng]}
-zoom={DEFAULT_CITY.zoom}
-      scrollWheelZoom={false}
-      style={{ height: "360px", width: "100%", borderRadius: "22px" }}
-    >
-      <TileLayer
-        attribution='&copy; OpenStreetMap contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-
-
-
-     <Marker position={[DEFAULT_CITY.lat, DEFAULT_CITY.lng]}>
-    <Popup>
-        📍 Centro operativo DeUnaGo - {DEFAULT_CITY.name}
-    </Popup>
-</Marker>
-
-
-{activeTasks
-  .filter((task) => task.pickupLat && task.pickupLng)
-  .map((task) => (
-    <Marker
-      key={`pickup-${task.id}`}
-      position={[task.pickupLat, task.pickupLng]}
-    >
-    <Popup>
-      📦 Recogida
-      <br />
-      Mandado #{task.id}
-    </Popup>
-  </Marker>
-))}
-{activeTasks
-  .filter((task) => task.dropoffLat && task.dropoffLng)
-  .map((task) => (
-    <Marker
-      key={`dropoff-${task.id}`}
-      position={[task.dropoffLat, task.dropoffLng]}
-    >
-    <Popup>
-      🏁 Entrega
-      <br />
-      Mandado #{task.id}
-    </Popup>
-  </Marker>
-))}
-{activeTasks
-  .filter((task) => task.runnerLat && task.runnerLng)
-  .map((task) => (
-    <Marker
-      key={`runner-task-${task.id}`}
-      position={[task.runnerLat, task.runnerLng]}
-    >
-    <Popup>
-      🛵 Runner asignado
-      <br />
-      Mandado #{task.id}
-      <br />
-      Estado: {task.status}
-    </Popup>
-  </Marker>
-))}
-{activeTasks.map((task) => (
-  <Marker
-    key={`runner-task-${task.id}`}
-    position={[task.runnerLat, task.runnerLng]}
-  >
-    <Popup>
-      🛵 Runner asignado
-      <br />
-      Mandado #{task.id}
-      <br />
-      Estado: {task.status}
-    </Popup>
-  </Marker>
-))}
-    </MapContainer>
-  </div>
-</div>
 
 {activeTasks.length > 0 && (
   <div className="card">
@@ -2350,20 +2262,6 @@ zoom={DEFAULT_CITY.zoom}
   </div>
 )}
 
-{liveRunners.map((runner) => (
-  <Marker
-    key={runner.id}
-    position={[runner.lastLat, runner.lastLng]}
-  >
-    <Popup>
-      🛵 {runner.name}
-      <br />
-      {runner.phone}
-      <br />
-      Disponible
-    </Popup>
-  </Marker>
-))}
 
 
 
