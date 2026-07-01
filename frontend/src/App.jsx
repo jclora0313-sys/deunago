@@ -1115,6 +1115,8 @@ if (showSplash) {
   return (
    <div className="splash-screen">
 
+<div className="splash-glow"></div>
+
   <img
     src={logoIcon}
     alt="DeUnaGo"
@@ -1409,6 +1411,27 @@ if (showSplash) {
 
         {user && (
           <>
+
+<div className="app-layout">
+  <aside className="sidebar">
+    <div className="sidebar-brand">DeUnaGo</div>
+
+    <button className="sidebar-item">🏠 Dashboard</button>
+    <button className="sidebar-item">👤 Perfil</button>
+    <button className="sidebar-item">📦 Mandados</button>
+    <button className="sidebar-item">💬 Chat</button>
+
+    {user.role === "ADMIN" && (
+      <>
+        <button className="sidebar-item">👥 Usuarios</button>
+        <button className="sidebar-item">💰 Pagos</button>
+        <button className="sidebar-item">🗺️ Mapa</button>
+      </>
+    )}
+  </aside>
+
+  <main className="app-content">
+
             <div className="card">
               <h2>🔔 Notificaciones en tiempo real</h2>
 
@@ -1441,9 +1464,11 @@ if (showSplash) {
             </div>
 
             <ChatBox />
+            </main>
+</div>
           </>
         )}
-
+  
         {user?.role === "CLIENT" && (
           <>
           <div className="card">
