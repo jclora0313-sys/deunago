@@ -8,6 +8,7 @@ import AdminLiveMap from "./components/AdminLiveMap";
 import Sidebar from "./components/Sidebar";
 import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminHero from "./components/AdminHero";
 
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -2212,30 +2213,10 @@ if (showSplash) {
 
        {user?.role === "ADMIN" && (
   <AdminDashboard>
-            <div className="admin-hero">
-              <h2>👑 Panel Administrativo</h2>
-
-              <p>
-                Administra usuarios, runners, mandados y documentos en tiempo
-                real desde DeUnaGo.
-              </p>
-
-              <div className="admin-actions">
-                <button
-                  onClick={cargarUsuarios}
-                  className="button button-primary"
-                >
-                  👥 Cargar usuarios
-                </button>
-
-                <button
-                  onClick={cargarEstadisticasAdmin}
-                  className="button button-success"
-                >
-                  📊 Ver estadísticas
-                </button>
-              </div>
-            </div>
+           <AdminHero
+  cargarUsuarios={cargarUsuarios}
+  cargarEstadisticasAdmin={cargarEstadisticasAdmin}
+/>
 
             <button
   onClick={cargarMandadosAdmin}
