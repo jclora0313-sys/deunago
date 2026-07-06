@@ -3,7 +3,7 @@ import "leaflet/dist/leaflet.css";
 
 function AdminLiveMap({ defaultCity, liveRunners = [], activeTasks = [] }) {
   return (
-    <div className="card">
+    <div id="admin-map-section" className="card">
       <h2>🗺️ Mapa en vivo</h2>
       <p>Vista operativa de {defaultCity.name}.</p>
 

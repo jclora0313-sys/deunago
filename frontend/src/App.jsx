@@ -5,6 +5,8 @@ import "./App.css";
 import MapView from "./components/MapView";
 import SelectLocationMap from "./components/SelectLocationMap";
 import AdminLiveMap from "./components/AdminLiveMap";
+import Sidebar from "./components/Sidebar";
+import SplashScreen from "./components/SplashScreen";
 
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -82,6 +84,7 @@ const [profilePhotoFile, setProfilePhotoFile] = useState(null);
 const [vehicleType, setVehicleType] = useState("");
 const [vehiclePlate, setVehiclePlate] = useState("");
 const [bio, setBio] = useState("");
+const [activeSection, setActiveSection] = useState("dashboard");
 const [showOnlyPendingUsers, setShowOnlyPendingUsers] = useState(false);
 const getAuthHeaders = () => ({
   headers: {
@@ -1113,27 +1116,10 @@ const clientTotalSpent = clientTasks
 
 if (showSplash) {
   return (
-   <div className="splash-screen">
-
-<div className="splash-glow"></div>
-
-  <img
-    src={logoIcon}
-    alt="DeUnaGo"
-    className="splash-icon"
-  />
-
-  <img
-    src={logoFull}
-    alt="DeUnaGo"
-    className="splash-logo"
-  />
-
-  <p className="splash-text">
-    Tu mandado en minutos.
-  </p>
-
-</div>
+    <SplashScreen
+      logoIcon={logoIcon}
+      logoFull={logoFull}
+    />
   );
 }
 
@@ -1413,27 +1399,18 @@ if (showSplash) {
           <>
 
 <div className="app-layout">
-  <aside className="sidebar">
-    <div className="sidebar-brand">DeUnaGo</div>
-
-    <button className="sidebar-item">🏠 Dashboard</button>
-    <button className="sidebar-item">👤 Perfil</button>
-    <button className="sidebar-item">📦 Mandados</button>
-    <button className="sidebar-item">💬 Chat</button>
-
-    {user.role === "ADMIN" && (
-      <>
-        <button className="sidebar-item">👥 Usuarios</button>
-        <button className="sidebar-item">💰 Pagos</button>
-        <button className="sidebar-item">🗺️ Mapa</button>
-      </>
-    )}
-  </aside>
+  <Sidebar
+  user={user}
+  logoIcon={logoIcon}
+  logout={logout}
+  activeSection={activeSection}
+  setActiveSection={setActiveSection}
+/>
 
   <main className="app-content">
 
-            <div className="card">
-              <h2>🔔 Notificaciones en tiempo real</h2>
+            <div id="dashboard-section" id="notifications-section" className="card">
+    <h2>🔔 Notificaciones en tiempo real</h2>
 
               <button
                 onClick={cargarNotificaciones}
@@ -1463,6 +1440,8 @@ if (showSplash) {
               ))}
             </div>
 
+
+<div id="chat-section"></div>
             <ChatBox />
             </main>
 </div>
@@ -1471,7 +1450,7 @@ if (showSplash) {
   
         {user?.role === "CLIENT" && (
           <>
-          <div className="card">
+          <div id="profile-section" className="card">
   <h2>👤 Mi perfil</h2>
 
   <button onClick={cargarPerfil} className="button button-primary">
@@ -1584,8 +1563,8 @@ if (showSplash) {
               </button>
             </div>
 
-            <div className="card">
-              <h2>📋 Mis mandados creados</h2>
+            <div id="tasks-section" className="card">
+  <h2>📋 Mis mandados creados</h2>
 
               <button
                 onClick={cargarMisMandadosCliente}
@@ -1753,7 +1732,7 @@ if (showSplash) {
 
         {user?.role === "RUNNER" && (
           <div className="card">
-          <div className="runner-profile-card">
+          <div id="profile-section" className="runner-profile-card">
   <h2>👤 Perfil del runner</h2>
 
   <button onClick={cargarPerfil} className="button button-primary">
@@ -2087,7 +2066,7 @@ if (showSplash) {
                   </div>
                 ))}
 
-                <h2 className="runner-section-title">🛵 Mis mandados</h2>
+                <h2 id="tasks-section" className="runner-section-title">🛵 Mis mandados</h2>
 
                 <div className="filters-bar">
                   {["ALL", "ACCEPTED", "PICKED_UP", "ON_THE_WAY", "DELIVERED"].map(
@@ -2231,7 +2210,10 @@ if (showSplash) {
         )}
 
         {user?.role === "ADMIN" && (
-          <div className="admin-dashboard">
+          <div
+  id="dashboard-section"
+  className="admin-dashboard"
+>
             <div className="admin-hero">
               <h2>👑 Panel Administrativo</h2>
 
@@ -2492,7 +2474,7 @@ if (showSplash) {
               </div>
             )}
 
-<div className="card">
+<div id="payments-section" className="card">
   <h2 className="admin-section-title">🧾 Pagos de mandados</h2>
 
   {adminTasks.length === 0 && (
@@ -2585,8 +2567,8 @@ if (showSplash) {
 
 
             <div className="card">
-              <h2
-  id="admin-users-section"
+             <h2
+  id="users-section"
   className="admin-section-title"
 >
   👥 Usuarios
