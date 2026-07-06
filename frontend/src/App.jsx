@@ -7,6 +7,7 @@ import SelectLocationMap from "./components/SelectLocationMap";
 import AdminLiveMap from "./components/AdminLiveMap";
 import Sidebar from "./components/Sidebar";
 import SplashScreen from "./components/SplashScreen";
+import AdminDashboard from "./pages/AdminDashboard";
 
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -2209,11 +2210,8 @@ if (showSplash) {
           </div>
         )}
 
-        {user?.role === "ADMIN" && (
-          <div
-  id="dashboard-section"
-  className="admin-dashboard"
->
+       {user?.role === "ADMIN" && (
+  <AdminDashboard>
             <div className="admin-hero">
               <h2>👑 Panel Administrativo</h2>
 
@@ -2691,8 +2689,8 @@ if (showSplash) {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+            </AdminDashboard>
+)}
       </div>
     </div>
   );
