@@ -7,7 +7,7 @@ import SelectLocationMap from "./components/SelectLocationMap";
 import AdminLiveMap from "./components/AdminLiveMap";
 import Sidebar from "./components/Sidebar";
 import SplashScreen from "./components/SplashScreen";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./pages/Admin/Dashboard";
 import AdminHero from "./components/AdminHero";
 import AdminReviewPanel from "./components/AdminReviewPanel";
 
