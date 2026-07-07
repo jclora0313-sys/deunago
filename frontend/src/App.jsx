@@ -9,6 +9,7 @@ import Sidebar from "./components/Sidebar";
 import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminHero from "./components/AdminHero";
+import AdminReviewPanel from "./components/AdminReviewPanel";
 
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -813,13 +814,24 @@ const aprobarRunner = async (userId) => {
   }
 };
 
-  const validarPagoMandado = async (taskId) => {
+const validarPagoMandado = async (taskId) => {
   try {
     await axios.patch(
       `${API_URL}/admin/tasks/${taskId}/validate-payment`,
       {},
       getAuthHeaders()
     );
+
+    showToast("Pago validado", "success");
+    cargarMandadosAdmin();
+    cargarEstadisticasAdmin();
+  } catch (error) {
+    showToast(
+      error.response?.data?.message || "Error validando pago",
+      "error"
+    );
+  }
+};
 
 const marcarRunnerPagado = async (taskId) => {
   try {
@@ -834,16 +846,9 @@ const marcarRunnerPagado = async (taskId) => {
     cargarEstadisticasAdmin();
   } catch (error) {
     showToast(
-  error.response?.data?.message || "Error marcando pago del runner",
-  "error"
-);
-  }
-};
-
-   showToast("Pago validado", "success");
-    cargarEstadisticasAdmin();
-  } catch (error) {
-    showToast(error.response?.data?.message || "Error validando pago", "error");
+      error.response?.data?.message || "Error marcando pago del runner",
+      "error"
+    );
   }
 };
 
@@ -1411,7 +1416,8 @@ if (showSplash) {
 
   <main className="app-content">
 
-            <div id="dashboard-section" id="notifications-section" className="card">
+            <div id="dashboard-section" className="card">
+              <div id="notifications-section"></div>
     <h2>🔔 Notificaciones en tiempo real</h2>
 
               <button
@@ -2224,48 +2230,12 @@ if (showSplash) {
 >
   🧾 Ver pagos
 </button>
-{users.length > 0 && (
- <div className="card">
-  <h2>📋 Pendientes de revisión</h2>
-
-  <button
-    onClick={() => {
-      document.getElementById("admin-users-section")?.scrollIntoView({
-        behavior: "smooth",
-      });
-    }}
-    className="button button-primary"
-  >
-    Ver usuarios pendientes
-    </button>
-<button
-  onClick={() => setShowOnlyPendingUsers(!showOnlyPendingUsers)}
-  className="button button-success"
->
-  {showOnlyPendingUsers
-    ? "Ver todos los usuarios"
-    : "Ver solo pendientes"}
-</button>
-
-
-    <div className="profile-stats-grid">
-      <div className="profile-stat-card">
-        <span>Identificaciones pendientes</span>
-        <strong>{pendingIdentificationUsers.length}</strong>
-      </div>
-
-      <div className="profile-stat-card">
-        <span>Licencias pendientes</span>
-        <strong>{pendingLicenseUsers.length}</strong>
-      </div>
-
-      <div className="profile-stat-card">
-        <span>Runners pendientes</span>
-        <strong>{pendingRunnerValidations.length}</strong>
-      </div>
-    </div>
-  </div>
-)}
+<AdminReviewPanel
+  users={users}
+  cargarMandadosAdmin={cargarMandadosAdmin}
+  showOnlyPendingUsers={showOnlyPendingUsers}
+  setShowOnlyPendingUsers={setShowOnlyPendingUsers}
+/>
 
 
 
