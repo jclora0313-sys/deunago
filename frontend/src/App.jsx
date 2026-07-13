@@ -10,6 +10,9 @@ import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import AdminHero from "./components/AdminHero";
 import AdminReviewPanel from "./components/AdminReviewPanel";
+import FinanceSummary from "./pages/Admin/FinanceSummary";
+
+import useAdmin from "./hooks/useAdmin";
 
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -40,17 +43,51 @@ function App() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  const [users, setUsers] = useState([]);
-  const [adminStats, setAdminStats] = useState(null);
-  const [adminTasks, setAdminTasks] = useState([]);
-  const [adminPaymentFilter, setAdminPaymentFilter] = useState("ALL");
+  const [toast, setToast] = useState(null);
+
+const showToast = (message, type = "success") => {
+  setToast({ message, type });
+
+  setTimeout(() => {
+    setToast(null);
+  }, 3000);
+};
+
+  const {
+  users,
+  setUsers,
+  adminStats,
+  setAdminStats,
+  adminTasks,
+  setAdminTasks,
+  adminPaymentFilter,
+  setAdminPaymentFilter,
+  showOnlyPendingUsers,
+  setShowOnlyPendingUsers,
+  cargarUsuarios,
+  cargarEstadisticasAdmin,
+  cargarMandadosAdmin,
+  activeTasks,
+setActiveTasks,
+cargarMandadosActivos,
+liveRunners,
+setLiveRunners,
+cargarRunnersEnVivo,
+validarIdentificacionRunner,
+validarLicenciaRunner,
+aprobarRunner,
+validarPagoMandado,
+marcarRunnerPagado,
+} = useAdmin(showToast);
+
+
 
   const [tasks, setTasks] = useState([]);
   const [myTasks, setMyTasks] = useState([]);
   const [clientTasks, setClientTasks] = useState([]);
   const [earnings, setEarnings] = useState(null);
   const [notifications, setNotifications] = useState([]);
-  const [activeTasks, setActiveTasks] = useState([]);
+  
  
 
   const [clientFilter, setClientFilter] = useState("ALL");
@@ -72,13 +109,12 @@ function App() {
   const [activeChatTaskId, setActiveChatTaskId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState("");
-  const [liveRunners, setLiveRunners] = useState([]);
+  
 
   const [identificationFile, setIdentificationFile] = useState(null);
   const [licenseFile, setLicenseFile] = useState(null);
   const [deliveryProofFile, setDeliveryProofFile] = useState(null);
   const [paymentProofFile, setPaymentProofFile] = useState(null);
-const [toast, setToast] = useState(null);
 const messageInputRef = useRef(null);
 const [profile, setProfile] = useState(null);
 const [profileName, setProfileName] = useState("");
@@ -88,7 +124,7 @@ const [vehicleType, setVehicleType] = useState("");
 const [vehiclePlate, setVehiclePlate] = useState("");
 const [bio, setBio] = useState("");
 const [activeSection, setActiveSection] = useState("dashboard");
-const [showOnlyPendingUsers, setShowOnlyPendingUsers] = useState(false);
+
 const getAuthHeaders = () => ({
   headers: {
     Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -101,13 +137,6 @@ const getAuthHeaders = () => ({
     },
   });
 
-const showToast = (message, type = "success") => {
-  setToast({ message, type });
-
-  setTimeout(() => {
-    setToast(null);
-  }, 3000);
-};
 
   const updateTaskInState = (updatedTask) => {
     setClientTasks((prev) =>
@@ -756,102 +785,6 @@ const subirComprobantePago = async (taskId) => {
   }
 };
 
-  const validarIdentificacionRunner = async (userId) => {
-    try {
-      await axios.patch(
-        `${API_URL}/admin/users/${userId}/validate-identification`,
-        {},
-        getAuthHeaders()
-      );
-
-      showToast("Identificación validada", "success");
-      cargarUsuarios();
-      cargarEstadisticasAdmin();
-      cargarMandadosActivos();
-    } catch (error) {
-      showToast(
-  error.response?.data?.message || "Error validando identificación",
-  "error"
-);
-    }
-  };
-
-  const validarLicenciaRunner = async (userId) => {
-    try {
-      await axios.patch(
-        `${API_URL}/admin/users/${userId}/validate-license`,
-        {},
-        getAuthHeaders()
-      );
-
-      showToast("Licencia validada", "success");
-      cargarUsuarios();
-      cargarEstadisticasAdmin();
-    } catch (error) {
-      showToast(
-  error.response?.data?.message || "Error validando licencia",
-  "error"
-);
-    }
-  };
-
-const aprobarRunner = async (userId) => {
-  try {
-    await axios.patch(
-      `${API_URL}/admin/users/${userId}/approve-runner`,
-      {},
-      getAuthHeaders()
-    );
-
-    showToast("Runner aprobado correctamente", "success");
-    cargarUsuarios();
-    cargarEstadisticasAdmin();
-  } catch (error) {
-    showToast(
-      error.response?.data?.message || "Error aprobando runner",
-      "error"
-    );
-  }
-};
-
-const validarPagoMandado = async (taskId) => {
-  try {
-    await axios.patch(
-      `${API_URL}/admin/tasks/${taskId}/validate-payment`,
-      {},
-      getAuthHeaders()
-    );
-
-    showToast("Pago validado", "success");
-    cargarMandadosAdmin();
-    cargarEstadisticasAdmin();
-  } catch (error) {
-    showToast(
-      error.response?.data?.message || "Error validando pago",
-      "error"
-    );
-  }
-};
-
-const marcarRunnerPagado = async (taskId) => {
-  try {
-    await axios.patch(
-      `${API_URL}/admin/tasks/${taskId}/pay-runner`,
-      {},
-      getAuthHeaders()
-    );
-
-    showToast("Runner marcado como pagado", "success");
-    cargarMandadosAdmin();
-    cargarEstadisticasAdmin();
-  } catch (error) {
-    showToast(
-      error.response?.data?.message || "Error marcando pago del runner",
-      "error"
-    );
-  }
-};
-
 const actualizarUbicacionRunnerEnVivo = async () => {
   console.log("🚀 Entró a actualizarUbicacionRunnerEnVivo");
   if (!navigator.geolocation) {
@@ -875,22 +808,7 @@ const actualizarUbicacionRunnerEnVivo = async () => {
   );
 };
 
-const cargarRunnersEnVivo = async () => {
-  try {
-    const res = await axios.get(
-      `${API_URL}/admin/runners/live`,
-      getAuthHeaders()
-    );
 
-    setLiveRunners(res.data);
-    showToast("Runners en vivo cargados", "success");
-  } catch (error) {
-    showToast(
-      error.response?.data?.message || "Error cargando runners en vivo",
-      "error"
-    );
-  }
-};
 
   const marcarRecogido = async (taskId) => {
     await axios.patch(`${API_URL}/tasks/${taskId}/pickup`, {}, getAuthHeaders());
@@ -922,39 +840,12 @@ const cargarRunnersEnVivo = async () => {
     cargarNotificaciones();
   };
 
-  const cargarUsuarios = async () => {
-    const res = await axios.get(`${API_URL}/admin/users`, getAuthHeaders());
-    setUsers(res.data);
-  };
 
-  const cargarEstadisticasAdmin = async () => {
-    const res = await axios.get(`${API_URL}/admin/stats`, getAuthHeaders());
-    setAdminStats(res.data);
-  };
 
-  const cargarMandadosAdmin = async () => {
-  const res = await axios.get(`${API_URL}/admin/tasks`, getAuthHeaders());
-  setAdminTasks(res.data);
-};
-const cargarMandadosActivos = async () => {
-  try {
-    const res = await axios.get(
-      `${API_URL}/admin/tasks`,
-      getAuthHeaders()
-    );
 
-    const activos = res.data.filter(
-      (t) =>
-        t.status === "ACCEPTED" ||
-        t.status === "PICKED_UP" ||
-        t.status === "ON_THE_WAY"
-    );
 
-    setActiveTasks(activos);
-  } catch (error) {
-    console.error(error);
-  }
-};
+
+
 
   
 
@@ -2271,39 +2162,7 @@ if (showSplash) {
   liveRunners={liveRunners}
   activeTasks={activeTasks}
 />
-{adminStats && (
-  <div className="finance-highlight">
-    <h2>💰 Resumen financiero</h2>
-
-    <p>Total cobrado por mandados pagados</p>
-
-    <div className="finance-big-number">
-      RD${adminStats.money.totalCollected || 0}
-    </div>
-
-    <div className="finance-mini-grid">
-      <div className="finance-mini-card">
-        <span>Comisión DeUnaGo 30%</span>
-        <strong>RD${adminStats.money.totalPlatformFee || 0}</strong>
-      </div>
-
-      <div className="finance-mini-card">
-        <span>Ganancias runners 70%</span>
-        <strong>RD${adminStats.money.totalRunnerEarnings || 0}</strong>
-      </div>
-
-      <div className="finance-mini-card">
-        <span>Mandados pagados</span>
-        <strong>{adminStats.money.paidTasksCount || 0}</strong>
-      </div>
-
-      <div className="finance-mini-card">
-        <span>Pagos pendientes</span>
-        <strong>{adminStats.money.pendingPaymentTasksCount || 0}</strong>
-      </div>
-    </div>
-  </div>
-)}
+<FinanceSummary adminStats={adminStats} />
 
 {paidAdminTasks.length > 0 && (
   <div className="card">
