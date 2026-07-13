@@ -4,15 +4,12 @@ import { io } from "socket.io-client";
 import "./App.css";
 import MapView from "./components/MapView";
 import SelectLocationMap from "./components/SelectLocationMap";
-import AdminLiveMap from "./components/AdminLiveMap";
+
 import Sidebar from "./components/Sidebar";
 import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/Admin/Dashboard";
-import AdminHero from "./components/AdminHero";
-import AdminReviewPanel from "./components/AdminReviewPanel";
-import FinanceSummary from "./pages/Admin/FinanceSummary";
-
 import useAdmin from "./hooks/useAdmin";
+import ChatBox from "./components/ChatBox";
 
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -897,39 +894,6 @@ const actualizarUbicacionRunnerEnVivo = async () => {
       ? myTasks
       : myTasks.filter((task) => task.status === runnerFilter);
 
-      const filteredAdminTasks =
-  adminPaymentFilter === "ALL"
-    ? adminTasks
-    : adminPaymentFilter === "PAYMENT_PENDING"
-    ? adminTasks.filter((task) => !task.paymentStatus || task.paymentStatus === "PENDING")
-    : adminPaymentFilter === "PAYMENT_REVIEW"
-    ? adminTasks.filter((task) => task.paymentStatus === "PENDING_REVIEW")
-    : adminPaymentFilter === "PAYMENT_PAID"
-    ? adminTasks.filter((task) => task.paymentStatus === "PAID")
-    : adminPaymentFilter === "RUNNER_PENDING"
-    ? adminTasks.filter((task) => task.runnerPayoutStatus !== "PAID")
-    : adminTasks.filter((task) => task.runnerPayoutStatus === "PAID");
-
-    const pendingIdentificationUsers = users.filter(
-  (u) => u.role === "RUNNER" && !u.identificationValid
-);
-
-const pendingLicenseUsers = users.filter(
-  (u) => u.role === "RUNNER" && !u.licenseValid
-);
-
-const pendingRunnerValidations = users.filter(
-  (u) =>
-    u.role === "RUNNER" &&
-    (!u.identificationValid || !u.licenseValid)
-);
-
-const paidAdminTasks = adminTasks.filter((task) => task.paymentStatus === "PAID");
-
-const maxPaidAmount = Math.max(
-  1,
-  ...paidAdminTasks.map((task) => task.estimatedPrice || 0)
-);
 
 const clientCompletedTasks = clientTasks.filter(
   (task) => task.status === "DELIVERED" || task.status === "COMPLETED"
@@ -943,74 +907,7 @@ const clientTotalSpent = clientTasks
   .filter((task) => task.paymentStatus === "PAID")
   .reduce((total, task) => total + (task.estimatedPrice || 0), 0);
 
-  function ChatBox() {
-    if (!activeChatTaskId) return null;
-
-    return (
-      <div className="card">
-        <h2>💬 Chat del mandado #{activeChatTaskId}</h2>
-
-        <button onClick={cerrarChat} className="button button-danger">
-          Cerrar chat
-        </button>
-
-      <div className="chat-messages">
-  {messages.length === 0 && <p className="empty">No hay mensajes.</p>}
-
-  {messages.map((msg) => (
-    <div
-      key={msg.id}
-      className={
-        msg.senderId === user.id
-          ? "chat-bubble chat-bubble-me"
-          : "chat-bubble chat-bubble-other"
-      }
-    >
-     <div className="chat-sender-row">
-{(msg.sender?.profilePhotoUrl || profile?.profilePhotoUrl) && (
-  <img
-    src={
-      msg.senderId === user.id
-        ? profile?.profilePhotoUrl
-        : msg.sender?.profilePhotoUrl
-    }
-    alt="Perfil"
-    className="chat-avatar"
-    style={{
-      width: "28px",
-      height: "28px",
-      borderRadius: "50%",
-      objectFit: "cover",
-    }}
-  />
-)}
-
-  <span className="chat-sender">
-    {msg.senderId === user.id ? "Tú" : "Otro"}
-  </span>
-</div>
-
-      {msg.text}
-    </div>
-  ))}
-</div>
-       <input
-  ref={messageInputRef}
-  className="input"
-  placeholder="Escribe un mensaje"
-  value={messageText}
-  onChange={(e) => {
-    setMessageText(e.target.value);
-    setTimeout(() => messageInputRef.current?.focus(), 0);
-  }}
-/>
-
-        <button onClick={enviarMensaje} className="button button-success">
-          Enviar mensaje
-        </button>
-      </div>
-    );
-  }
+ 
 
 if (showSplash) {
   return (
@@ -1341,7 +1238,17 @@ if (showSplash) {
 
 
 <div id="chat-section"></div>
-            <ChatBox />
+            <ChatBox
+  activeChatTaskId={activeChatTaskId}
+  messages={messages}
+  user={user}
+  profile={profile}
+  messageInputRef={messageInputRef}
+  messageText={messageText}
+  setMessageText={setMessageText}
+  cerrarChat={cerrarChat}
+  enviarMensaje={enviarMensaje}
+/>
             </main>
 </div>
           </>
@@ -2108,398 +2015,33 @@ if (showSplash) {
           </div>
         )}
 
-       {user?.role === "ADMIN" && (
-  <AdminDashboard>
-           <AdminHero
-  cargarUsuarios={cargarUsuarios}
-  cargarEstadisticasAdmin={cargarEstadisticasAdmin}
-/>
-
-            <button
-  onClick={cargarMandadosAdmin}
-  className="button button-primary"
->
-  🧾 Ver pagos
-</button>
-<AdminReviewPanel
-  users={users}
-  cargarMandadosAdmin={cargarMandadosAdmin}
-  showOnlyPendingUsers={showOnlyPendingUsers}
-  setShowOnlyPendingUsers={setShowOnlyPendingUsers}
-/>
-
-
-
-{activeTasks.length > 0 && (
-  <div className="card">
-    <h2>📦 Mandados activos</h2>
-
-    {activeTasks.map((task) => (
-      <div key={task.id} className="task-card">
-        <div className={getBadgeClass(task.status)}>
-          {getStatusText(task.status)}
-        </div>
-
-        <h3>Mandado #{task.id}</h3>
-
-        <p>{task.description}</p>
-        <p>Precio: RD${task.estimatedPrice}</p>
-        <p>Ganancia runner: RD${task.runnerEarnings}</p>
-
-    
-        <button
-          onClick={() => cargarMandadosActivos()}
-          className="button button-primary"
-        >
-          Actualizar
-        </button>
-      </div>
-    ))}
-  </div>
-)}
-<AdminLiveMap
-  defaultCity={DEFAULT_CITY}
-  liveRunners={liveRunners}
-  activeTasks={activeTasks}
-/>
-<FinanceSummary adminStats={adminStats} />
-
-{paidAdminTasks.length > 0 && (
-  <div className="card">
-    <h2 className="admin-section-title">📈 Ingresos por mandado</h2>
-
-    <div className="simple-chart">
-      {paidAdminTasks.map((task) => (
-        <div key={task.id} className="chart-row">
-          <span>#{task.id}</span>
-
-          <div className="chart-track">
-            <div
-              className="chart-bar"
-              style={{
-                width: `${((task.estimatedPrice || 0) / maxPaidAmount) * 100}%`,
-              }}
-            />
-          </div>
-
-          <strong>RD${task.estimatedPrice || 0}</strong>
-        </div>
-      ))}
-    </div>
-  </div>
-)}
-
-            {adminStats && (
-              <div className="card">
-                <h2 className="admin-section-title">
-                  📊 Estadísticas generales
-                </h2>
-
-                <div className="admin-stats-grid">
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">Usuarios totales</p>
-                    <p className="admin-stat-value">
-                      {adminStats.users.totalUsers}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">Clientes</p>
-                    <p className="admin-stat-value">
-                      {adminStats.users.totalClients}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">Mandaderos</p>
-                    <p className="admin-stat-value">
-                      {adminStats.users.totalRunners}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">Runners disponibles</p>
-                    <p className="admin-stat-value">
-                      {adminStats.users.availableRunners || 0}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">ID validadas</p>
-                    <p className="admin-stat-value">
-                      {adminStats.users.runnersWithValidId || 0}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">Licencias validadas</p>
-                    <p className="admin-stat-value">
-                      {adminStats.users.runnersWithValidLicense || 0}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">Mandados totales</p>
-                    <p className="admin-stat-value">
-                      {adminStats.tasks.totalTasks}
-                    </p>
-                  </div>
-
-                  <div className="admin-stat-card">
-                    <p className="admin-stat-label">Ingresos estimados</p>
-                    <div className="admin-stat-card">
-  <p className="admin-stat-label">Comisión DeUnaGo</p>
-  <p className="admin-stat-value">
-    RD${adminStats.money.totalPlatformFee || 0}
-  </p>
-</div>
-
-<div className="admin-stat-card">
-  <p className="admin-stat-label">Ganancias runners</p>
-  <p className="admin-stat-value">
-    RD${adminStats.money.totalRunnerEarnings || 0}
-  </p>
-</div>
-
-<div className="admin-stat-card">
-  <p className="admin-stat-label">Mandados pagados</p>
-  <p className="admin-stat-value">
-    {adminStats.money.paidTasksCount || 0}
-  </p>
-</div>
-
-<div className="admin-stat-card">
-  <p className="admin-stat-label">Pagos pendientes</p>
-  <p className="admin-stat-value">
-    {adminStats.money.pendingPaymentTasksCount || 0}
-  </p>
-</div>
-                    <p className="admin-stat-value">
-                      RD${adminStats.money.estimatedRevenue}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-<div id="payments-section" className="card">
-  <h2 className="admin-section-title">🧾 Pagos de mandados</h2>
-
-  {adminTasks.length === 0 && (
-    <p className="empty">No hay mandados cargados.</p>
-  )}
-
-  <div className="filters-bar">
-  {[
-    ["ALL", "Todos"],
-    ["PAYMENT_PENDING", "Pago pendiente"],
-    ["PAYMENT_REVIEW", "En revisión"],
-    ["PAYMENT_PAID", "Pago validado"],
-    ["RUNNER_PENDING", "Runner pendiente"],
-    ["RUNNER_PAID", "Runner pagado"],
-  ].map(([value, label]) => (
-    <button
-      key={value}
-      onClick={() => setAdminPaymentFilter(value)}
-      className={
-        adminPaymentFilter === value
-          ? "filter-btn active"
-          : "filter-btn"
-      }
-    >
-      {label}
-    </button>
-  ))}
-</div>
-
-  {filteredAdminTasks.map((task) => (
-    <div key={task.id} className="admin-user-card">
-      <div className="admin-pill">
-        {task.paymentStatus || "PENDING"}
-      </div>
-
-      <h3>{task.description}</h3>
-
-      <p className="admin-user-meta">
-        Precio: RD${task.estimatedPrice}
-      </p>
-
-      <p className="admin-user-meta">
-  Comisión DeUnaGo: RD${task.platformFee}
-</p>
-
-<p className="admin-user-meta">
-  Ganancia runner: RD${task.runnerEarnings}
-</p>
-<p className="admin-user-meta">
-  Pago al runner: {task.runnerPayoutStatus === "PAID" ? "Pagado" : "Pendiente"}
-</p>
-
-      <p className="admin-user-meta">
-        Estado del mandado: {getStatusText(task.status)}
-      </p>
-
-      {task.paymentProofUrl && (
-        <a
-          href={task.paymentProofUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="document-link"
-        >
-          🧾 Ver comprobante de pago
-        </a>
-      )}
-
-      {task.paymentProofUrl && task.paymentStatus !== "PAID" && (
-        <button
-          onClick={() => validarPagoMandado(task.id)}
-          className="button button-success"
-        >
-          ✅ Validar pago
-        </button>
-      )}
-{task.paymentStatus === "PAID" &&
-  task.runnerPayoutStatus !== "PAID" && (
-    <button
-      onClick={() => marcarRunnerPagado(task.id)}
-      className="button button-success"
-    >
-      💸 Marcar runner pagado
-    </button>
-)}
-
-    </div>
-    
-  ))}
-</div>
-
-
-            <div className="card">
-             <h2
-  id="users-section"
-  className="admin-section-title"
->
-  👥 Usuarios
-</h2>
-
-              {users.length === 0 && (
-                <p className="empty">No hay usuarios cargados.</p>
-              )}
-
-              {users
-  .filter((u) => {
-    if (!showOnlyPendingUsers) return true;
-
-    return (
-      u.role === "RUNNER" &&
-      (!u.identificationValid || !u.licenseValid)
-    );
-  })
-  .map((u) => (
-                <div key={u.id} className="admin-user-card">
-                  <div className="admin-user-header">
-  <div className="admin-user-main">
-
-    {u.profilePhotoUrl && (
-      <img
-        src={u.profilePhotoUrl}
-        alt={u.name}
-        className="admin-user-avatar"
-      />
-    )}
-
-    <div>
-      <h3>{u.name}</h3>
-      <p className="admin-user-meta">{u.phone}</p>
-    </div>
-
-  </div>
-
-  <div className="admin-user-role">
-    {u.role}
-  </div>
-</div>
-                 
-                  <p className="admin-user-meta">Estado: {u.status}</p>
-
-                  {u.role === "RUNNER" && (
-                    <>
-                      <p className="admin-user-meta">
-                        Disponible: {u.isAvailable ? "Sí" : "No"}
-                      </p>
-
-                      <p className="admin-user-meta">
-                        Identificación:{" "}
-                        {u.identificationValid ? "Validada" : "Pendiente"}
-                      </p>
-
-                      <p className="admin-user-meta">
-                        Licencia: {u.licenseValid ? "Validada" : "Pendiente"}
-                      </p>
-
-                      {u.identificationUrl && (
-                        <a
-                          href={u.identificationUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="document-link"
-                        >
-                          🪪 Ver identificación
-                        </a>
-                      )}
-
-                      {u.licenseUrl && (
-                        <a
-                          href={u.licenseUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="document-link"
-                        >
-                          🚗 Ver licencia
-                        </a>
-                      )}
-
-                      {u.status === "PENDING" && (
-                        <button
-                          onClick={() => aprobarRunner(u.id)}
-                          className="button button-success"
-                        >
-                          ✅ Aprobar runner
-                        </button>
-                      )}
-
-                      {!u.identificationValid && (
-                        <button
-                          onClick={() => validarIdentificacionRunner(u.id)}
-                          className="button button-primary"
-                        >
-                          🪪 Validar identificación
-                        </button>
-                      )}
-
-                      {!u.licenseValid && (
-                        <button
-                          onClick={() => validarLicenciaRunner(u.id)}
-                          className="button button-primary"
-                        >
-                          🚗 Validar licencia
-                        </button>
-                      )}
-
-                      {(!u.identificationValid || !u.licenseValid || u.status !== "APPROVED") && (
-                        <button
-                          onClick={() => aprobarRunner(u.id)}
-                          className="button button-success"
-                        >
-                          ✅ Aprobar runner
-                        </button>
-                      )}
-                    </>
-                  )}
-                </div>
-              ))}
-            </div>
-            </AdminDashboard>
+      {user?.role === "ADMIN" && (
+  <AdminDashboard
+    users={users}
+    adminStats={adminStats}
+    adminTasks={adminTasks}
+    filteredAdminTasks={filteredAdminTasks}
+    adminPaymentFilter={adminPaymentFilter}
+    setAdminPaymentFilter={setAdminPaymentFilter}
+    activeTasks={activeTasks}
+    liveRunners={liveRunners}
+    defaultCity={DEFAULT_CITY}
+    paidAdminTasks={paidAdminTasks}
+    maxPaidAmount={maxPaidAmount}
+    showOnlyPendingUsers={showOnlyPendingUsers}
+    setShowOnlyPendingUsers={setShowOnlyPendingUsers}
+    cargarUsuarios={cargarUsuarios}
+    cargarEstadisticasAdmin={cargarEstadisticasAdmin}
+    cargarMandadosAdmin={cargarMandadosAdmin}
+    cargarMandadosActivos={cargarMandadosActivos}
+    validarIdentificacionRunner={validarIdentificacionRunner}
+    validarLicenciaRunner={validarLicenciaRunner}
+    aprobarRunner={aprobarRunner}
+    validarPagoMandado={validarPagoMandado}
+    marcarRunnerPagado={marcarRunnerPagado}
+    getBadgeClass={getBadgeClass}
+    getStatusText={getStatusText}
+  />
 )}
       </div>
     </div>

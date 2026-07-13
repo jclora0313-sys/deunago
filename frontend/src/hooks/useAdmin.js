@@ -162,6 +162,42 @@ const marcarRunnerPagado = async (taskId) => {
   }
 };
 
+const filteredAdminTasks =
+  adminPaymentFilter === "ALL"
+    ? adminTasks
+    : adminPaymentFilter === "PAYMENT_PENDING"
+    ? adminTasks.filter(
+        (task) =>
+          !task.paymentStatus ||
+          task.paymentStatus === "PENDING"
+      )
+    : adminPaymentFilter === "PAYMENT_REVIEW"
+    ? adminTasks.filter(
+        (task) => task.paymentStatus === "PENDING_REVIEW"
+      )
+    : adminPaymentFilter === "PAYMENT_PAID"
+    ? adminTasks.filter(
+        (task) => task.paymentStatus === "PAID"
+      )
+    : adminPaymentFilter === "RUNNER_PENDING"
+    ? adminTasks.filter(
+        (task) => task.runnerPayoutStatus !== "PAID"
+      )
+    : adminTasks.filter(
+        (task) => task.runnerPayoutStatus === "PAID"
+      );
+
+const paidAdminTasks = adminTasks.filter(
+  (task) => task.paymentStatus === "PAID"
+);
+
+const maxPaidAmount = Math.max(
+  1,
+  ...paidAdminTasks.map(
+    (task) => task.estimatedPrice || 0
+  )
+);
+
   return {
     users,
     setUsers,
@@ -192,5 +228,8 @@ validarLicenciaRunner,
 aprobarRunner,
 validarPagoMandado,
 marcarRunnerPagado,
+filteredAdminTasks,
+paidAdminTasks,
+maxPaidAmount,
   };
 }
