@@ -1648,19 +1648,10 @@ app.get("/tasks/:id/messages", authMiddleware, async (req, res) => {
 
   const messages = await prisma.message.findMany({
   where: {
-    taskId,
+    taskId: Number(req.params.taskId),
   },
   orderBy: {
     createdAt: "asc",
-  },
-  include: {
-    sender: {
-      select: {
-        id: true,
-        name: true,
-        profilePhotoUrl: true,
-      },
-    },
   },
 });
     res.json(messages);

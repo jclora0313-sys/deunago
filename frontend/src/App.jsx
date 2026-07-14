@@ -279,15 +279,29 @@ useEffect(() => {
     setDropoffLng(lng);
   };
 
-  const abrirChat = async (taskId) => {
+ const abrirChat = async (taskId) => {
+  try {
     const res = await axios.get(
       `${API_URL}/tasks/${taskId}/messages`,
       getAuthHeaders()
     );
 
     setActiveChatTaskId(taskId);
-    setMessages(res.data);
-  };
+    setMessages(Array.isArray(res.data) ? res.data : []);
+  } catch (error) {
+    console.error(
+      "Error abriendo chat:",
+      error.response?.status,
+      error.response?.data || error.message
+    );
+
+    showToast(
+      error.response?.data?.message ||
+        "El servidor no pudo cargar los mensajes del chat",
+      "error"
+    );
+  }
+};
 
   const enviarMensaje = async () => {
     if (!messageText.trim()) {
