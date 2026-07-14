@@ -1627,92 +1627,68 @@ app.post(
 );
 // CHAT
 
-app.get("/tasks/:id/messages", authMiddleware, async (req, res) => {
+app.get("/tasks/:taskId/messages", authenticateToken, async (req, res) => {
   try {
-    const taskId = Number(req.params.id);
+    const taskId = Number(req.params.taskId);
 
-    const task = await prisma.task.findUnique({
-      where: { id: taskId },
+    if (!Number.isInteger(taskId)) {
+      return res.status(400).json({
+        message: "El ID del mandado no es válido",
+      });
+    }
+
+    const messages = await prisma.message.findMany({
+      where: {
+        taskId,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
     });
 
-    if (!task) {
-      return res.status(404).json({ message: "Mandado no existe" });
-    }
-
-    const isClient = task.clientId === req.user.id;
-    const isRunner = task.runnerId === req.user.id;
-
-    if (!isClient && !isRunner) {
-      return res.status(403).json({ message: "No tienes permiso" });
-    }
-
- const messages = await prisma.message.findMany({
-  where: {
-    taskId: Number(req.params.taskId),
-  },
-  orderBy: {
-    createdAt: "asc",
-  },
-});
-    res.json(messages);
+    return res.json(messages);
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Error cargando mensajes" });
+    console.error("Error cargando mensajes:", error);
+
+    return res.status(500).json({
+      message: "Error cargando mensajes del chat",
+    });
   }
 });
 
-app.post("/tasks/:id/messages", authMiddleware, async (req, res) => {
+app.post("/tasks/:taskId/messages", authenticateToken, async (req, res) => {
   try {
-    const taskId = Number(req.params.id);
-    const { text } = req.body;
+    const taskId = Number(req.params.taskId);
+    const senderId = Number(req.user.id);
+    const text = req.body.text?.trim();
 
-
-const cleanText = String(text || "").trim();
-
-if (!cleanText) {
-  return res.status(400).json({
-    message: "El mensaje está vacío",
-  });
-}
-
-if (cleanText.length > 500) {
-  return res.status(400).json({
-    message: "El mensaje no puede tener más de 500 caracteres",
-  });
-}
-    const task = await prisma.task.findUnique({
-      where: { id: taskId },
-    });
-
-    if (!task) {
-      return res.status(404).json({ message: "Mandado no existe" });
+    if (!Number.isInteger(taskId)) {
+      return res.status(400).json({
+        message: "El ID del mandado no es válido",
+      });
     }
 
-    const isClient = task.clientId === req.user.id;
-    const isRunner = task.runnerId === req.user.id;
-
-    if (!isClient && !isRunner) {
-      return res.status(403).json({ message: "No tienes permiso" });
+    if (!text) {
+      return res.status(400).json({
+        message: "El mensaje no puede estar vacío",
+      });
     }
 
     const message = await prisma.message.create({
-  data: {
-    taskId: Number(req.params.taskId),
-    senderId: req.user.id,
-    text: req.body.text,
-  },
-});
+      data: {
+        taskId,
+        senderId,
+        text,
+      },
+    });
 
-    io.to(`user_${task.clientId}`).emit("newMessage", message);
-
-    if (task.runnerId) {
-      io.to(`user_${task.runnerId}`).emit("newMessage", message);
-    }
-
-    res.json(message);
+    return res.status(201).json(message);
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Error enviando mensaje" });
+    console.error("Error enviando mensaje:", error);
+
+    return res.status(500).json({
+      message: "Error enviando el mensaje",
+    });
   }
 });
 
