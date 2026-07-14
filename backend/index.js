@@ -1146,57 +1146,73 @@ app.get("/tasks/client/my", authMiddleware, requireRole("CLIENT"), async (req, r
   res.json(tasks);
 });
 
-app.patch("/tasks/:id/cancel", authMiddleware, requireRole("CLIENT"), async (req, res) => {
-  try {
-    const taskId = Number(req.params.id);
+app.patch(
+  "/tasks/:id/cancel",
+  authMiddleware,
+  requireRole("CLIENT"),
+  async (req, res) => {
+    try {
+      const taskId = Number(req.params.id);
 
-if (task.paymentStatus === "PAID") {
-  return res.status(400).json({
-    message: "No puedes cancelar un mandado ya pagado",
-  });
-}
+      if (!Number.isInteger(taskId)) {
+        return res.status(400).json({
+          message: "El ID del mandado no es válido",
+        });
+      }
 
-if (task.runnerId) {
-  return res.status(400).json({
-    message: "No puedes cancelar un mandado ya aceptado",
-  });
-}
+      const task = await prisma.task.findUnique({
+        where: { id: taskId },
+      });
 
-    const task = await prisma.task.findUnique({
-      where: { id: taskId },
-    });
+      if (!task) {
+        return res.status(404).json({
+          message: "Mandado no existe",
+        });
+      }
 
-    if (!task) {
-      return res.status(404).json({ message: "Mandado no existe" });
-    }
+      if (task.clientId !== req.user.id) {
+        return res.status(403).json({
+          message: "Este mandado no es tuyo",
+        });
+      }
 
-    if (task.clientId !== req.user.id) {
-      return res.status(403).json({
-        message: "Este mandado no es tuyo",
+      if (task.paymentStatus === "PAID") {
+        return res.status(400).json({
+          message: "No puedes cancelar un mandado ya pagado",
+        });
+      }
+
+      if (task.runnerId) {
+        return res.status(400).json({
+          message: "No puedes cancelar un mandado ya aceptado",
+        });
+      }
+
+      if (task.status !== "OPEN") {
+        return res.status(400).json({
+          message: "Solo puedes cancelar mandados abiertos",
+        });
+      }
+
+      const updatedTask = await prisma.task.update({
+        where: { id: taskId },
+        data: {
+          status: "CANCELLED",
+        },
+      });
+
+      io.to(`user_${task.clientId}`).emit("taskUpdated", updatedTask);
+
+      return res.json(updatedTask);
+    } catch (error) {
+      console.error("Error cancelando mandado:", error);
+
+      return res.status(500).json({
+        message: "Error cancelando mandado",
       });
     }
-
-    if (task.status !== "OPEN") {
-      return res.status(400).json({
-        message: "Solo puedes cancelar mandados abiertos",
-      });
-    }
-
-    const updatedTask = await prisma.task.update({
-      where: { id: taskId },
-      data: {
-        status: "CANCELLED",
-      },
-    });
-
-    io.to(`user_${task.clientId}`).emit("taskUpdated", updatedTask);
-
-    res.json(updatedTask);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Error cancelando mandado" });
   }
-});
+);
 
 app.patch("/tasks/:id/rate", authMiddleware, requireRole("CLIENT"), async (req, res) => {
   try {
@@ -1627,7 +1643,9 @@ app.post(
 );
 // CHAT
 
-app.get("/tasks/:taskId/messages", authenticateToken, async (req, res) => {
+// CHAT
+
+app.get("/tasks/:taskId/messages", authMiddleware, async (req, res) => {
   try {
     const taskId = Number(req.params.taskId);
 
@@ -1637,10 +1655,29 @@ app.get("/tasks/:taskId/messages", authenticateToken, async (req, res) => {
       });
     }
 
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        message: "Mandado no existe",
+      });
+    }
+
+    const canAccessChat =
+      req.user.role === "ADMIN" ||
+      task.clientId === req.user.id ||
+      task.runnerId === req.user.id;
+
+    if (!canAccessChat) {
+      return res.status(403).json({
+        message: "No tienes permiso para ver este chat",
+      });
+    }
+
     const messages = await prisma.message.findMany({
-      where: {
-        taskId,
-      },
+      where: { taskId },
       orderBy: {
         createdAt: "asc",
       },
@@ -1656,7 +1693,7 @@ app.get("/tasks/:taskId/messages", authenticateToken, async (req, res) => {
   }
 });
 
-app.post("/tasks/:taskId/messages", authenticateToken, async (req, res) => {
+app.post("/tasks/:taskId/messages", authMiddleware, async (req, res) => {
   try {
     const taskId = Number(req.params.taskId);
     const senderId = Number(req.user.id);
@@ -1674,6 +1711,27 @@ app.post("/tasks/:taskId/messages", authenticateToken, async (req, res) => {
       });
     }
 
+    const task = await prisma.task.findUnique({
+      where: { id: taskId },
+    });
+
+    if (!task) {
+      return res.status(404).json({
+        message: "Mandado no existe",
+      });
+    }
+
+    const canAccessChat =
+      req.user.role === "ADMIN" ||
+      task.clientId === req.user.id ||
+      task.runnerId === req.user.id;
+
+    if (!canAccessChat) {
+      return res.status(403).json({
+        message: "No tienes permiso para escribir en este chat",
+      });
+    }
+
     const message = await prisma.message.create({
       data: {
         taskId,
@@ -1681,6 +1739,12 @@ app.post("/tasks/:taskId/messages", authenticateToken, async (req, res) => {
         text,
       },
     });
+
+    io.to(`user_${task.clientId}`).emit("newMessage", message);
+
+    if (task.runnerId) {
+      io.to(`user_${task.runnerId}`).emit("newMessage", message);
+    }
 
     return res.status(201).json(message);
   } catch (error) {
@@ -1799,6 +1863,8 @@ app.get("/users/:id/profile", authMiddleware, async (req, res) => {
   }
 });
 
-server.listen(3000, () => {
-  console.log("🚀 Servidor corriendo en http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+
+server.listen(PORT, () => {
+  console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });
