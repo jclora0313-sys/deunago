@@ -38,7 +38,30 @@ function App() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("CLIENT");
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const getStoredUser = () => {
+  try {
+    const storedUser = localStorage.getItem("user");
+
+    if (
+      !storedUser ||
+      storedUser === "undefined" ||
+      storedUser === "null"
+    ) {
+      return null;
+    }
+
+    return JSON.parse(storedUser);
+  } catch (error) {
+    console.error("Usuario inválido en localStorage:", error);
+
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+
+    return null;
+  }
+};
+
+  const user = getStoredUser();
 
   const [toast, setToast] = useState(null);
 
