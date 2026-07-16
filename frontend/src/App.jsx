@@ -9,6 +9,7 @@ import Sidebar from "./components/Sidebar";
 import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import useAdmin from "./hooks/useAdmin";
+import useChat from "./hooks/useChat";
 import ChatBox from "./components/ChatBox";
 
 import logoFull from "./assets/logo-full.png";
@@ -100,6 +101,18 @@ validarPagoMandado,
 marcarRunnerPagado,
 } = useAdmin(showToast);
 
+const {
+  activeChatTaskId,
+  setActiveChatTaskId,
+  messages,
+  setMessages,
+  messageText,
+  setMessageText,
+  abrirChat,
+  enviarMensaje,
+  cerrarChat,
+} = useChat(showToast);
+
 
 
   const [tasks, setTasks] = useState([]);
@@ -126,9 +139,7 @@ marcarRunnerPagado,
   const [trackingTaskId, setTrackingTaskId] = useState(null);
   const trackingIntervalRef = useRef(null);
 
-  const [activeChatTaskId, setActiveChatTaskId] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [messageText, setMessageText] = useState("");
+ 
   
 
   const [identificationFile, setIdentificationFile] = useState(null);
@@ -300,51 +311,6 @@ useEffect(() => {
   const seleccionarDestino = (lat, lng) => {
     setDropoffLat(lat);
     setDropoffLng(lng);
-  };
-
- const abrirChat = async (taskId) => {
-  try {
-    const res = await axios.get(
-      `${API_URL}/tasks/${taskId}/messages`,
-      getAuthHeaders()
-    );
-
-    setActiveChatTaskId(taskId);
-    setMessages(Array.isArray(res.data) ? res.data : []);
-  } catch (error) {
-    console.error(
-      "Error abriendo chat:",
-      error.response?.status,
-      error.response?.data || error.message
-    );
-
-    showToast(
-      error.response?.data?.message ||
-        "El servidor no pudo cargar los mensajes del chat",
-      "error"
-    );
-  }
-};
-
-  const enviarMensaje = async () => {
-    if (!messageText.trim()) {
-      alert("Escribe un mensaje");
-      return;
-    }
-
-    await axios.post(
-      `${API_URL}/tasks/${activeChatTaskId}/messages`,
-      { text: messageText },
-      getAuthHeaders()
-    );
-
-    setMessageText("");
-  };
-
-  const cerrarChat = () => {
-    setActiveChatTaskId(null);
-    setMessages([]);
-    setMessageText("");
   };
 
   const enviarUbicacionRunner = async (taskId, mostrarAlerta = true) => {

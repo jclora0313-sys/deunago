@@ -3,6 +3,7 @@ import {
   TileLayer,
   Marker,
   Polyline,
+  Popup,
 } from "react-leaflet";
 
 import L from "leaflet";
