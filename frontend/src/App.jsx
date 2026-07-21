@@ -12,6 +12,7 @@ import useAdmin from "./hooks/useAdmin";
 import useChat from "./hooks/useChat";
 import useNotifications from "./hooks/useNotifications";
 import ChatBox from "./components/ChatBox";
+import useProfile from "./hooks/useProfile";
 
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -124,6 +125,26 @@ const {
   marcarTodasNotificacionesLeidas,
 } = useNotifications(showToast);
 
+const {
+  profile,
+  setProfile,
+  profileName,
+  setProfileName,
+  profileAddress,
+  setProfileAddress,
+  profilePhotoFile,
+  setProfilePhotoFile,
+  vehicleType,
+  setVehicleType,
+  vehiclePlate,
+  setVehiclePlate,
+  bio,
+  setBio,
+  cargarPerfil,
+  guardarPerfil,
+  subirFotoPerfil,
+} = useProfile(showToast);
+
 
 
   const [tasks, setTasks] = useState([]);
@@ -158,13 +179,7 @@ const {
   const [deliveryProofFile, setDeliveryProofFile] = useState(null);
   const [paymentProofFile, setPaymentProofFile] = useState(null);
 const messageInputRef = useRef(null);
-const [profile, setProfile] = useState(null);
-const [profileName, setProfileName] = useState("");
-const [profileAddress, setProfileAddress] = useState("");
-const [profilePhotoFile, setProfilePhotoFile] = useState(null);
-const [vehicleType, setVehicleType] = useState("");
-const [vehiclePlate, setVehiclePlate] = useState("");
-const [bio, setBio] = useState("");
+
 const [activeSection, setActiveSection] = useState("dashboard");
 
 const getAuthHeaders = () => ({
@@ -417,72 +432,6 @@ useEffect(() => {
     localStorage.removeItem("user");
     window.location.reload();
   };
-
-
-
-  const cargarPerfil = async () => {
-  const res = await axios.get(`${API_URL}/users/me`, getAuthHeaders());
-
-  setProfile(res.data);
-  setProfileName(res.data.name || "");
-  setProfileAddress(res.data.mainAddress || "");
-  setVehicleType(res.data.vehicleType || "");
-setVehiclePlate(res.data.vehiclePlate || "");
-setBio(res.data.bio || "");
-};
-const guardarPerfil = async () => {
-  try {
-    const res = await axios.patch(
-      `${API_URL}/users/me`,
-      {
-        name: profileName,
-        mainAddress: profileAddress,
-        vehicleType: vehicleType,
-        vehiclePlate: vehiclePlate,
-        bio: bio,
-      },
-      getAuthHeaders()
-    );
-
-    setProfile(res.data);
-
-    showToast("Perfil actualizado", "success");
-  } catch (error) {
-    showToast(
-      error.response?.data?.message || "Error actualizando perfil",
-      "error"
-    );
-  }
-};
-const subirFotoPerfil = async () => {
-  try {
-    if (!profilePhotoFile) {
-      showToast("Selecciona una foto", "error");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", profilePhotoFile);
-
-    const res = await axios.post(
-      `${API_URL}/users/me/photo` ,
-      formData,
-      getUploadHeaders()
-    );
-
-    setProfile(res.data);
-
-    showToast("Foto de perfil subida", "success");
-  } catch (error) {
-    showToast(
-      error.response?.data?.message || "Error subiendo foto",
-      "error"
-    );
-  }
-};
-
-
-  
 
   const crearMandado = async () => {
     try {
