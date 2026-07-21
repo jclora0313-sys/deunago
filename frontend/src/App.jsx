@@ -10,6 +10,7 @@ import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import useAdmin from "./hooks/useAdmin";
 import useChat from "./hooks/useChat";
+import useNotifications from "./hooks/useNotifications";
 import ChatBox from "./components/ChatBox";
 
 import logoFull from "./assets/logo-full.png";
@@ -31,7 +32,7 @@ const SERVICE_RADIUS_KM = 18;
 
 function App() {
   const [mode, setMode] = useState("login");
-  const [showNotificationsPanel, setShowNotificationsPanel] = useState(false);
+  
   const [showSplash, setShowSplash] = useState(true);
 
   const [name, setName] = useState("");
@@ -113,13 +114,23 @@ const {
   cerrarChat,
 } = useChat(showToast);
 
+const {
+  notifications,
+  setNotifications,
+  showNotificationsPanel,
+  setShowNotificationsPanel,
+  cargarNotificaciones,
+  marcarNotificacionLeida,
+  marcarTodasNotificacionesLeidas,
+} = useNotifications(showToast);
+
 
 
   const [tasks, setTasks] = useState([]);
   const [myTasks, setMyTasks] = useState([]);
   const [clientTasks, setClientTasks] = useState([]);
   const [earnings, setEarnings] = useState(null);
-  const [notifications, setNotifications] = useState([]);
+
   
  
 
@@ -407,10 +418,7 @@ useEffect(() => {
     window.location.reload();
   };
 
-  const cargarNotificaciones = async () => {
-    const res = await axios.get(`${API_URL}/notifications`, getAuthHeaders());
-    setNotifications(res.data);
-  };
+
 
   const cargarPerfil = async () => {
   const res = await axios.get(`${API_URL}/users/me`, getAuthHeaders());
@@ -473,37 +481,8 @@ const subirFotoPerfil = async () => {
   }
 };
 
-  const marcarTodasNotificacionesLeidas = async () => {
-  try {
-    await axios.patch(
-      `${API_URL}/notifications/read-all`,
-      {},
-      getAuthHeaders()
-    );
 
-    cargarNotificaciones();
-
-    showToast(
-      "Todas las notificaciones fueron marcadas como leídas",
-      "success"
-    );
-  } catch (error) {
-    showToast(
-      error.response?.data?.message ||
-        "Error marcando notificaciones",
-      "error"
-    );
-  }
-};
-  const marcarNotificacionLeida = async (notificationId) => {
-    await axios.patch(
-      `${API_URL}/notifications/${notificationId}/read`,
-      {},
-      getAuthHeaders()
-    );
-
-    cargarNotificaciones();
-  };
+  
 
   const crearMandado = async () => {
     try {
