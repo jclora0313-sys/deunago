@@ -8,7 +8,7 @@ import SelectLocationMap from "./components/SelectLocationMap";
 import Sidebar from "./components/Sidebar";
 import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/Admin/Dashboard";
-import RunnerDashboard from "./pages/Runner/Dashboard";
+import RunnerDashboard from "./pages/runner/Dashboard";
 
 import useAdmin from "./hooks/useAdmin";
 import useChat from "./hooks/useChat";
