@@ -13,6 +13,7 @@ import useChat from "./hooks/useChat";
 import useNotifications from "./hooks/useNotifications";
 import ChatBox from "./components/ChatBox";
 import useProfile from "./hooks/useProfile";
+import useAuth from "./hooks/useAuth";
 
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -32,118 +33,108 @@ const SERVICE_RADIUS_KM = 18;
 
 
 function App() {
-  const [mode, setMode] = useState("login");
-  
   const [showSplash, setShowSplash] = useState(true);
-
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("CLIENT");
-
-  const getStoredUser = () => {
-  try {
-    const storedUser = localStorage.getItem("user");
-
-    if (
-      !storedUser ||
-      storedUser === "undefined" ||
-      storedUser === "null"
-    ) {
-      return null;
-    }
-
-    return JSON.parse(storedUser);
-  } catch (error) {
-    console.error("Usuario inválido en localStorage:", error);
-
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-
-    return null;
-  }
-};
-
-  const user = getStoredUser();
 
   const [toast, setToast] = useState(null);
 
-const showToast = (message, type = "success") => {
-  setToast({ message, type });
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
 
-  setTimeout(() => {
-    setToast(null);
-  }, 3000);
-};
+    setTimeout(() => {
+      setToast(null);
+    }, 3000);
+  };
+
+  const trackingIntervalRef = useRef(null);
 
   const {
-  users,
-  setUsers,
-  adminStats,
-  setAdminStats,
-  adminTasks,
-  setAdminTasks,
-  adminPaymentFilter,
-  setAdminPaymentFilter,
-  showOnlyPendingUsers,
-  setShowOnlyPendingUsers,
-  cargarUsuarios,
-  cargarEstadisticasAdmin,
-  cargarMandadosAdmin,
-  activeTasks,
-setActiveTasks,
-cargarMandadosActivos,
-liveRunners,
-setLiveRunners,
-cargarRunnersEnVivo,
-validarIdentificacionRunner,
-validarLicenciaRunner,
-aprobarRunner,
-validarPagoMandado,
-marcarRunnerPagado,
-} = useAdmin(showToast);
+    user,
+    mode,
+    setMode,
+    name,
+    setName,
+    phone,
+    setPhone,
+    password,
+    setPassword,
+    role,
+    setRole,
+    register,
+    login,
+    logout,
+  } = useAuth(showToast, trackingIntervalRef);
 
-const {
-  activeChatTaskId,
-  setActiveChatTaskId,
-  messages,
-  setMessages,
-  messageText,
-  setMessageText,
-  abrirChat,
-  enviarMensaje,
-  cerrarChat,
-} = useChat(showToast);
+  const {
+    users,
+    setUsers,
+    adminStats,
+    setAdminStats,
+    adminTasks,
+    setAdminTasks,
+    filteredAdminTasks,
+    paidAdminTasks,
+    maxPaidAmount,
+    adminPaymentFilter,
+    setAdminPaymentFilter,
+    showOnlyPendingUsers,
+    setShowOnlyPendingUsers,
+    cargarUsuarios,
+    cargarEstadisticasAdmin,
+    cargarMandadosAdmin,
+    activeTasks,
+    setActiveTasks,
+    cargarMandadosActivos,
+    liveRunners,
+    setLiveRunners,
+    cargarRunnersEnVivo,
+    validarIdentificacionRunner,
+    validarLicenciaRunner,
+    aprobarRunner,
+    validarPagoMandado,
+    marcarRunnerPagado,
+  } = useAdmin(showToast);
 
-const {
-  notifications,
-  setNotifications,
-  showNotificationsPanel,
-  setShowNotificationsPanel,
-  cargarNotificaciones,
-  marcarNotificacionLeida,
-  marcarTodasNotificacionesLeidas,
-} = useNotifications(showToast);
+  const {
+    activeChatTaskId,
+    setActiveChatTaskId,
+    messages,
+    setMessages,
+    messageText,
+    setMessageText,
+    abrirChat,
+    enviarMensaje,
+    cerrarChat,
+  } = useChat(showToast);
 
-const {
-  profile,
-  setProfile,
-  profileName,
-  setProfileName,
-  profileAddress,
-  setProfileAddress,
-  profilePhotoFile,
-  setProfilePhotoFile,
-  vehicleType,
-  setVehicleType,
-  vehiclePlate,
-  setVehiclePlate,
-  bio,
-  setBio,
-  cargarPerfil,
-  guardarPerfil,
-  subirFotoPerfil,
-} = useProfile(showToast);
+  const {
+    notifications,
+    setNotifications,
+    showNotificationsPanel,
+    setShowNotificationsPanel,
+    cargarNotificaciones,
+    marcarNotificacionLeida,
+    marcarTodasNotificacionesLeidas,
+  } = useNotifications(showToast);
+
+  const {
+    profile,
+    setProfile,
+    profileName,
+    setProfileName,
+    profileAddress,
+    setProfileAddress,
+    profilePhotoFile,
+    setProfilePhotoFile,
+    vehicleType,
+    setVehicleType,
+    vehiclePlate,
+    setVehiclePlate,
+    bio,
+    setBio,
+    cargarPerfil,
+    guardarPerfil,
+    subirFotoPerfil,
+  } = useProfile(showToast);
 
 
 
@@ -169,11 +160,7 @@ const {
   const [review, setReview] = useState("");
 
   const [trackingTaskId, setTrackingTaskId] = useState(null);
-  const trackingIntervalRef = useRef(null);
-
- 
   
-
   const [identificationFile, setIdentificationFile] = useState(null);
   const [licenseFile, setLicenseFile] = useState(null);
   const [deliveryProofFile, setDeliveryProofFile] = useState(null);
@@ -388,50 +375,11 @@ useEffect(() => {
     showToast("Tracking detenido", "info");
   };
 
-  const register = async () => {
-    try {
-      await axios.post(`${API_URL}/auth/register`, {
-        name,
-        phone,
-        password,
-        role,
-      });
 
-      showToast("Cuenta creada", "success");
-      setMode("login");
-    } catch (error) {
-      showToast(
-  error.response?.data?.message || "Error creando cuenta",
-  "error"
-);
-    }
-  };
 
-  const login = async () => {
-    try {
-      const res = await axios.post(`${API_URL}/auth/login`, {
-        phone,
-        password,
-      });
+ 
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
 
-      window.location.reload();
-    } catch (error) {
-      showToast(error.response?.data?.message || "Error", "error");
-    }
-  };
-
-  const logout = () => {
-    if (trackingIntervalRef.current) {
-      clearInterval(trackingIntervalRef.current);
-    }
-
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.reload();
-  };
 
   const crearMandado = async () => {
     try {
@@ -1746,25 +1694,27 @@ if (showSplash) {
 
 <h3>📜 Historial de pagos</h3>
 
-{earnings.tasks?.length === 0 && (
+{earnings?.tasks?.length === 0 && (
   <p className="empty">Aún no tienes pagos registrados.</p>
 )}
 
-{earnings.tasks?.map((task) => (
-  <div key={task.id} className="runner-task-card">
-    <h3>{task.description}</h3>
+{earnings?.tasks?.map((paymentTask) => (
+  <div key={paymentTask.id} className="runner-task-card">
+    <h3>{paymentTask.description}</h3>
 
     <p className="runner-price">
-      Ganancia: RD${task.runnerEarnings || 0}
+      Ganancia: RD${paymentTask.runnerEarnings || 0}
     </p>
 
     <p className="runner-distance">
       Estado de cobro:{" "}
-      {task.runnerPayoutStatus === "PAID" ? "Pagado" : "Pendiente"}
+      {paymentTask.runnerPayoutStatus === "PAID"
+        ? "Pagado"
+        : "Pendiente"}
     </p>
 
     <p className="runner-distance">
-      Estado del mandado: {getStatusText(task.status)}
+      Estado del mandado: {getStatusText(paymentTask.status)}
     </p>
   </div>
 ))}
