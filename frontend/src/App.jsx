@@ -9,6 +9,9 @@ import Sidebar from "./components/Sidebar";
 import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import RunnerDashboard from "./pages/Runner/Dashboard";
+import RunnerProfile from "./pages/Runner/components/RunnerProfile";
+import RunnerStatusCard from "./pages/Runner/components/RunnerStatusCard";
+import RunnerDocuments from "./pages/Runner/components/RunnerDocuments";
 import useAdmin from "./hooks/useAdmin";
 import useChat from "./hooks/useChat";
 import useNotifications from "./hooks/useNotifications";
@@ -998,174 +1001,37 @@ if (showSplash) {
 
         {user?.role === "RUNNER" && (
         <RunnerDashboard>
-          <div id="profile-section" className="runner-profile-card">
-  <h2>👤 Perfil del runner</h2>
+        <RunnerProfile
+  profile={profile}
+  profileName={profileName}
+  setProfileName={setProfileName}
+  profileAddress={profileAddress}
+  setProfileAddress={setProfileAddress}
+  vehicleType={vehicleType}
+  setVehicleType={setVehicleType}
+  vehiclePlate={vehiclePlate}
+  setVehiclePlate={setVehiclePlate}
+  bio={bio}
+  setBio={setBio}
+  setProfilePhotoFile={setProfilePhotoFile}
+  cargarPerfil={cargarPerfil}
+  guardarPerfil={guardarPerfil}
+  subirFotoPerfil={subirFotoPerfil}
+/>
+            
+<RunnerStatusCard
+  user={user}
+  actualizarDisponibilidadRunner={actualizarDisponibilidadRunner}
+/>
 
-  <button onClick={cargarPerfil} className="button button-primary">
-    Cargar perfil
-  </button>
+<RunnerDocuments
+  user={user}
+  setIdentificationFile={setIdentificationFile}
+  setLicenseFile={setLicenseFile}
+  subirIdentificacion={subirIdentificacion}
+  subirLicencia={subirLicencia}
+/>
 
-  {profile && (
-    <>
-      {profile.profilePhotoUrl && (
-        <img
-          src={profile.profilePhotoUrl}
-          alt="Perfil"
-          className="profile-photo"
-        />
-      )}
-
-      <input
-        className="input"
-        placeholder="Nombre"
-        value={profileName}
-        onChange={(e) => setProfileName(e.target.value)}
-      />
-
-      <input
-        className="input"
-        placeholder="Dirección principal"
-        value={profileAddress}
-        onChange={(e) => setProfileAddress(e.target.value)}
-      />
-
-      <input
-        className="input"
-        placeholder="Tipo de vehículo"
-        value={vehicleType}
-        onChange={(e) => setVehicleType(e.target.value)}
-      />
-
-      <input
-        className="input"
-        placeholder="Placa"
-        value={vehiclePlate}
-        onChange={(e) => setVehiclePlate(e.target.value)}
-      />
-
-      <input
-        className="input"
-        placeholder="Bio breve"
-        value={bio}
-        onChange={(e) => setBio(e.target.value)}
-      />
-
-      <button onClick={guardarPerfil} className="button button-success">
-        Guardar perfil
-      </button>
-
-      <h3>Foto de perfil</h3>
-
-      <input
-        type="file"
-        className="input"
-        onChange={(e) => setProfilePhotoFile(e.target.files[0])}
-      />
-
-      <button onClick={subirFotoPerfil} className="button button-primary">
-        Subir foto
-      </button>
-    </>
-  )}
-</div>
-            <div className="runner-profile-card">
-              <h2>🛵 Perfil del mandadero</h2>
-
-              <div className="runner-status-grid">
-                <div className="status-box">
-                  <span>Disponibilidad</span>
-                  <strong
-                    style={{ color: user.isAvailable ? "#22c55e" : "#ef4444" }}
-                  >
-                    {user.isAvailable ? "Disponible" : "No disponible"}
-                  </strong>
-                </div>
-
-                <div className="status-box">
-                  <span>Identificación</span>
-                  <strong
-                    style={{
-                      color: user.identificationValid ? "#22c55e" : "#f59e0b",
-                    }}
-                  >
-                    {user.identificationValid ? "Validada" : "Pendiente"}
-                  </strong>
-                </div>
-
-                <div className="status-box">
-                  <span>Licencia</span>
-                  <strong
-                    style={{ color: user.licenseValid ? "#22c55e" : "#f59e0b" }}
-                  >
-                    {user.licenseValid ? "Validada" : "Pendiente"}
-                  </strong>
-                </div>
-              </div>
-
-              <button
-                className={
-                  user.isAvailable ? "button button-danger" : "button button-success"
-                }
-                onClick={() => actualizarDisponibilidadRunner(!user.isAvailable)}
-              >
-                {user.isAvailable
-                  ? "🔴 Ponerse no disponible"
-                  : "🟢 Ponerse disponible"}
-              </button>
-            </div>
-
-            <div className="upload-card">
-              <h3>🪪 Identificación</h3>
-
-              {user.identificationUrl && (
-                <a
-                  href={user.identificationUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="document-link"
-                >
-                  Ver identificación subida
-                </a>
-              )}
-
-              <input
-                type="file"
-                className="input"
-                onChange={(e) => setIdentificationFile(e.target.files[0])}
-              />
-
-              <button
-                onClick={subirIdentificacion}
-                className="button button-primary"
-              >
-                Subir identificación
-              </button>
-            </div>
-
-            <div className="upload-card">
-              <h3>🚗 Licencia de conducir</h3>
-
-              {user.licenseUrl && (
-                <a
-                  href={user.licenseUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="document-link"
-                >
-                  Ver licencia subida
-                </a>
-              )}
-
-              <input
-                type="file"
-                className="input"
-                onChange={(e) => setLicenseFile(e.target.files[0])}
-              />
-
-              <button onClick={subirLicencia} className="button button-primary">
-                Subir licencia
-              </button>
-            </div>
 
             {user.status !== "APPROVED" && (
               <div className="pending-box">
