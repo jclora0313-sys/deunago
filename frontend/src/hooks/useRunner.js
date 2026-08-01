@@ -428,6 +428,19 @@ const actualizarUbicacionRunnerEnVivo = async () => {
   );
 };
 
+const filteredRunnerTasks =
+  runnerFilter === "ALL"
+    ? myTasks
+    : myTasks.filter((task) => task.status === runnerFilter);
+
+const isActiveRunnerTask = (status) => {
+  return (
+    status === "ACCEPTED" ||
+    status === "PICKED_UP" ||
+    status === "ON_THE_WAY"
+  );
+};
+
   return {
     tasks,
     setTasks,
@@ -466,5 +479,8 @@ marcarRecogido,
 marcarEnCamino,
 marcarEntregado,
 actualizarUbicacionRunnerEnVivo,
+
+filteredRunnerTasks,
+isActiveRunnerTask,
   };
 }

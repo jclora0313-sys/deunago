@@ -8,6 +8,7 @@ import SelectLocationMap from "./components/SelectLocationMap";
 import Sidebar from "./components/Sidebar";
 import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/Admin/Dashboard";
+import RunnerDashboard from "./pages/Runner/Dashboard";
 import useAdmin from "./hooks/useAdmin";
 import useChat from "./hooks/useChat";
 import useNotifications from "./hooks/useNotifications";
@@ -16,6 +17,7 @@ import useProfile from "./hooks/useProfile";
 import useAuth from "./hooks/useAuth";
 import useClient from "./hooks/useClient";
 import useRunner from "./hooks/useRunner";
+
 
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -225,6 +227,8 @@ marcarRecogido,
 marcarEnCamino,
 marcarEntregado,
 actualizarUbicacionRunnerEnVivo,
+filteredRunnerTasks,
+isActiveRunnerTask,
 } = useRunner({
   user,
   showToast,
@@ -356,14 +360,6 @@ useEffect(() => {
     return status;
   };
 
-  const isActiveRunnerTask = (status) => {
-    return (
-      status === "ACCEPTED" ||
-      status === "PICKED_UP" ||
-      status === "ON_THE_WAY"
-    );
-  };
-
   const canChat = (task) => {
     return (
       task.status === "ACCEPTED" ||
@@ -372,11 +368,6 @@ useEffect(() => {
       task.status === "DELIVERED"
     );
   };
-
-  const filteredRunnerTasks =
-    runnerFilter === "ALL"
-      ? myTasks
-      : myTasks.filter((task) => task.status === runnerFilter); 
 
 if (showSplash) {
   return (
@@ -1006,7 +997,7 @@ if (showSplash) {
         )}
 
         {user?.role === "RUNNER" && (
-          <div className="card">
+        <RunnerDashboard>
           <div id="profile-section" className="runner-profile-card">
   <h2>👤 Perfil del runner</h2>
 
@@ -1483,7 +1474,7 @@ if (showSplash) {
                 ))}
               </>
             )}
-          </div>
+          </RunnerDashboard>
         )}
 
       {user?.role === "ADMIN" && (
