@@ -12,6 +12,7 @@ import RunnerDashboard from "./pages/Runner/Dashboard";
 import RunnerProfile from "./pages/Runner/components/RunnerProfile";
 import RunnerStatusCard from "./pages/Runner/components/RunnerStatusCard";
 import RunnerDocuments from "./pages/Runner/components/RunnerDocuments";
+import RunnerActionsPanel from "./pages/Runner/components/RunnerActionsPanel";
 import useAdmin from "./hooks/useAdmin";
 import useChat from "./hooks/useChat";
 import useNotifications from "./hooks/useNotifications";
@@ -1041,42 +1042,14 @@ if (showSplash) {
 
             {user.status === "APPROVED" && (
               <>
-                <div className="runner-actions">
-                  <button onClick={cargarMandados} className="button button-primary">
-                    📦 Ver disponibles
-                  </button>
-
-                  <button
-                    onClick={cargarMisMandados}
-                    className="button button-primary"
-                  >
-                    🛵 Mis mandados
-                  </button>
-
-                  <button
-                    onClick={() => {
-  cargarGanancias();
-  cargarEstadisticasRunner();
-}}
-                    className="button button-success"
-                  >
-                    💰 Ver ganancias
-                  </button>
-                </div>
-
-                {trackingTaskId && (
-                  <div className="runner-highlight">
-                    <div className="tracking-live">Tracking activo</div>
-                    <h2>📡 Mandado #{trackingTaskId}</h2>
-
-                    <button
-                      onClick={detenerTrackingRunner}
-                      className="button button-danger"
-                    >
-                      Detener tracking
-                    </button>
-                  </div>
-                )}
+                <RunnerActionsPanel
+  trackingTaskId={trackingTaskId}
+  cargarMandados={cargarMandados}
+  cargarMisMandados={cargarMisMandados}
+  cargarGanancias={cargarGanancias}
+  cargarEstadisticasRunner={cargarEstadisticasRunner}
+  detenerTrackingRunner={detenerTrackingRunner}
+/>
 
                 {earnings && (
                   <div className="runner-highlight">
