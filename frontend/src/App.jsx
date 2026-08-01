@@ -9,10 +9,7 @@ import Sidebar from "./components/Sidebar";
 import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import RunnerDashboard from "./pages/Runner/Dashboard";
-import RunnerProfile from "./pages/Runner/components/RunnerProfile";
-import RunnerStatusCard from "./pages/Runner/components/RunnerStatusCard";
-import RunnerDocuments from "./pages/Runner/components/RunnerDocuments";
-import RunnerActionsPanel from "./pages/Runner/components/RunnerActionsPanel";
+
 import useAdmin from "./hooks/useAdmin";
 import useChat from "./hooks/useChat";
 import useNotifications from "./hooks/useNotifications";
@@ -1000,321 +997,63 @@ if (showSplash) {
           </>
         )}
 
-        {user?.role === "RUNNER" && (
-        <RunnerDashboard>
-        <RunnerProfile
-  profile={profile}
-  profileName={profileName}
-  setProfileName={setProfileName}
-  profileAddress={profileAddress}
-  setProfileAddress={setProfileAddress}
-  vehicleType={vehicleType}
-  setVehicleType={setVehicleType}
-  vehiclePlate={vehiclePlate}
-  setVehiclePlate={setVehiclePlate}
-  bio={bio}
-  setBio={setBio}
-  setProfilePhotoFile={setProfilePhotoFile}
-  cargarPerfil={cargarPerfil}
-  guardarPerfil={guardarPerfil}
-  subirFotoPerfil={subirFotoPerfil}
-/>
-            
-<RunnerStatusCard
-  user={user}
-  actualizarDisponibilidadRunner={actualizarDisponibilidadRunner}
-/>
+{user?.role === "RUNNER" && (
+  <RunnerDashboard
+    user={user}
 
-<RunnerDocuments
-  user={user}
-  setIdentificationFile={setIdentificationFile}
-  setLicenseFile={setLicenseFile}
-  subirIdentificacion={subirIdentificacion}
-  subirLicencia={subirLicencia}
-/>
+    profile={profile}
+    profileName={profileName}
+    setProfileName={setProfileName}
+    profileAddress={profileAddress}
+    setProfileAddress={setProfileAddress}
+    vehicleType={vehicleType}
+    setVehicleType={setVehicleType}
+    vehiclePlate={vehiclePlate}
+    setVehiclePlate={setVehiclePlate}
+    bio={bio}
+    setBio={setBio}
+    setProfilePhotoFile={setProfilePhotoFile}
+    cargarPerfil={cargarPerfil}
+    guardarPerfil={guardarPerfil}
+    subirFotoPerfil={subirFotoPerfil}
 
+    actualizarDisponibilidadRunner={actualizarDisponibilidadRunner}
 
-            {user.status !== "APPROVED" && (
-              <div className="pending-box">
-                ⏳ Esperando aprobación del administrador.
-              </div>
-            )}
+    setIdentificationFile={setIdentificationFile}
+    setLicenseFile={setLicenseFile}
+    subirIdentificacion={subirIdentificacion}
+    subirLicencia={subirLicencia}
 
-            {user.status === "APPROVED" && (
-              <>
-                <RunnerActionsPanel
-  trackingTaskId={trackingTaskId}
-  cargarMandados={cargarMandados}
-  cargarMisMandados={cargarMisMandados}
-  cargarGanancias={cargarGanancias}
-  cargarEstadisticasRunner={cargarEstadisticasRunner}
-  detenerTrackingRunner={detenerTrackingRunner}
-/>
+    trackingTaskId={trackingTaskId}
+    cargarMandados={cargarMandados}
+    cargarMisMandados={cargarMisMandados}
+    cargarGanancias={cargarGanancias}
+    cargarEstadisticasRunner={cargarEstadisticasRunner}
+    detenerTrackingRunner={detenerTrackingRunner}
 
-                {earnings && (
-                  <div className="runner-highlight">
-                    <h2>💰 Ganancias</h2>
+    earnings={earnings}
+    runnerStats={runnerStats}
 
-                    <div className="runner-stats-grid">
-                      <div className="runner-stat-card">
-                        <p className="runner-stat-label">Total ganado 70%</p>
-                        <p className="runner-stat-value">
-                          RD${earnings.totalEarnings}
-                        </p>
-                      </div>
+    tasks={tasks}
+    getBadgeClass={getBadgeClass}
+    getStatusText={getStatusText}
+    aceptarMandado={aceptarMandado}
 
-                      <div className="runner-stat-card">
-                        <p className="runner-stat-label">Mandados completados</p>
-                        <p className="runner-stat-value">
-                          {earnings.completedCount}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {runnerStats && (
-  <div className="runner-highlight">
-    <h2>⭐ Reputación</h2>
-
-    <p>
-      Rating promedio: {runnerStats.averageRating}/5
-    </p>
-
-    <p>
-      Calificaciones recibidas: {runnerStats.ratingsCount}
-    </p>
-
-    <p>
-      Mandados completados: {runnerStats.completedCount}
-    </p>
-  </div>
+    filteredRunnerTasks={filteredRunnerTasks}
+    runnerFilter={runnerFilter}
+    setRunnerFilter={setRunnerFilter}
+    canChat={canChat}
+    abrirChat={abrirChat}
+    isActiveRunnerTask={isActiveRunnerTask}
+    marcarRecogido={marcarRecogido}
+    marcarEnCamino={marcarEnCamino}
+    marcarEntregado={marcarEntregado}
+    setDeliveryProofFile={setDeliveryProofFile}
+    subirComprobanteEntrega={subirComprobanteEntrega}
+    enviarUbicacionRunner={enviarUbicacionRunner}
+    iniciarTrackingRunner={iniciarTrackingRunner}
+  />
 )}
-
-                <h2 className="runner-section-title">📦 Disponibles</h2>
-
-                {tasks.length === 0 && (
-                  <p className="empty">No hay mandados disponibles cargados.</p>
-                )}
-
-                {tasks.map((task) => (
-                  <div key={task.id} className="runner-task-card">
-                    <div className={getBadgeClass(task.status)}>
-                      {getStatusText(task.status)}
-                    </div>
-
-                    <h3>{task.description}</h3>
-                    <p className="runner-distance">
-                      Distancia: {task.distanceKm} km
-                    </p>
-                    <p className="runner-price">RD${task.estimatedPrice}</p>
-                    <p className="runner-price">
-  Tu ganancia: RD${task.runnerEarnings || 0}
-</p>
-
-<h3>📜 Historial de pagos</h3>
-
-{earnings?.tasks?.length === 0 && (
-  <p className="empty">Aún no tienes pagos registrados.</p>
-)}
-
-{earnings?.tasks?.map((paymentTask) => (
-  <div key={paymentTask.id} className="runner-task-card">
-    <h3>{paymentTask.description}</h3>
-
-    <p className="runner-price">
-      Ganancia: RD${paymentTask.runnerEarnings || 0}
-    </p>
-
-    <p className="runner-distance">
-      Estado de cobro:{" "}
-      {paymentTask.runnerPayoutStatus === "PAID"
-        ? "Pagado"
-        : "Pendiente"}
-    </p>
-
-    <p className="runner-distance">
-      Estado del mandado: {getStatusText(paymentTask.status)}
-    </p>
-  </div>
-))}
-
-<p className="runner-distance">
-  Pago: {task.paymentStatus === "PAID" ? "Validado" : "Pendiente"}
-</p>
-
-                    <MapView
-                      pickupLat={task.pickupLat}
-                      pickupLng={task.pickupLng}
-                      dropoffLat={task.dropoffLat}
-                      dropoffLng={task.dropoffLng}
-                      runnerLat={task.runnerLat}
-                      runnerLng={task.runnerLng}
-                    />
-
-{task.deliveryProofUrl && (
-  <a
-    href={task.deliveryProofUrl}
-    target="_blank"
-    rel="noreferrer"
-    className="document-link"
-  >
-    📸 Ver comprobante de entrega
-  </a>
-)}
-                    <div className="runner-actions">
-                      <button
-                        onClick={() => aceptarMandado(task.id)}
-                        className="button button-success"
-                      >
-                        Aceptar mandado
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                <h2 id="tasks-section" className="runner-section-title">🛵 Mis mandados</h2>
-
-                <div className="filters-bar">
-                  {["ALL", "ACCEPTED", "PICKED_UP", "ON_THE_WAY", "DELIVERED"].map(
-                    (status) => (
-                      <button
-                        key={status}
-                        onClick={() => setRunnerFilter(status)}
-                        className={
-                          runnerFilter === status
-                            ? "filter-btn active"
-                            : "filter-btn"
-                        }
-                      >
-                        {status === "ALL" ? "Todos" : getStatusText(status)}
-                      </button>
-                    )
-                  )}
-                </div>
-
-                {filteredRunnerTasks.length === 0 && (
-                  <p className="empty">No hay mandados con este filtro.</p>
-                )}
-
-                {filteredRunnerTasks.map((task) => (
-                  <div key={task.id} className="runner-task-card">
-                    <div className={getBadgeClass(task.status)}>
-                      {getStatusText(task.status)}
-                    </div>
-
-                    <h3>{task.description}</h3>
-                    <p className="runner-distance">
-                      Distancia: {task.distanceKm} km
-                    </p>
-                    <p className="runner-price">RD${task.estimatedPrice}</p>
-                    <p className="runner-price">
-  Tu ganancia: RD${task.runnerEarnings || 0}
-</p>
-
-<p className="runner-distance">
-  Pago: {task.paymentStatus === "PAID" ? "Validado" : "Pendiente"}
-</p>
-
-                    <MapView
-                      pickupLat={task.pickupLat}
-                      pickupLng={task.pickupLng}
-                      dropoffLat={task.dropoffLat}
-                      dropoffLng={task.dropoffLng}
-                      runnerLat={task.runnerLat}
-                      runnerLng={task.runnerLng}
-                    />
-
-{task.deliveryProofUrl && (
-  <a
-    href={task.deliveryProofUrl}
-    target="_blank"
-    rel="noreferrer"
-    className="document-link"
-  >
-    📸 Ver comprobante de entrega
-  </a>
-)}
-                    {canChat(task) && (
-                      <button
-                        onClick={() => abrirChat(task.id)}
-                        className="button button-primary"
-                      >
-                        💬 Abrir chat
-                      </button>
-                    )}
-
-                    {isActiveRunnerTask(task.status) && (
-                      <div className="runner-actions">
-                        {task.status === "ACCEPTED" && (
-                          <button
-                            onClick={() => marcarRecogido(task.id)}
-                            className="button button-blue"
-                          >
-                            📦 Marcar recogido
-                          </button>
-                        )}
-
-                        {task.status === "PICKED_UP" && (
-                          <button
-                            onClick={() => marcarEnCamino(task.id)}
-                            className="button button-blue"
-                          >
-                            🛵 Marcar en camino
-                          </button>
-                        )}
-
-                        {task.status === "ON_THE_WAY" && (
-                          <button
-                            onClick={() => marcarEntregado(task.id)}
-                            className="button button-blue"
-                          >
-                            ✅ Marcar entregado
-                          </button>
-                        )}
-
-<input
-  type="file"
-  className="input"
-  onChange={(e) => setDeliveryProofFile(e.target.files[0])}
-/>
-
-<button
-  onClick={() => subirComprobanteEntrega(task.id)}
-  className="button button-primary"
->
-  📸 Subir comprobante
-</button>
-                        <button
-                          onClick={() => enviarUbicacionRunner(task.id)}
-                          className="button button-success"
-                        >
-                          📍 Enviar ubicación
-                        </button>
-
-                        {trackingTaskId === task.id ? (
-                          <button
-                            onClick={detenerTrackingRunner}
-                            className="button button-danger"
-                          >
-                            Detener tracking
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => iniciarTrackingRunner(task.id)}
-                            className="button button-success"
-                          >
-                            📡 Iniciar tracking
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </>
-            )}
-          </RunnerDashboard>
-        )}
 
       {user?.role === "ADMIN" && (
   <AdminDashboard
