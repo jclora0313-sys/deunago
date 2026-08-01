@@ -14,6 +14,7 @@ import useNotifications from "./hooks/useNotifications";
 import ChatBox from "./components/ChatBox";
 import useProfile from "./hooks/useProfile";
 import useAuth from "./hooks/useAuth";
+import useClient from "./hooks/useClient";
 
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -136,35 +137,77 @@ function App() {
     subirFotoPerfil,
   } = useProfile(showToast);
 
+  const {
+  clientTasks,
+  setClientTasks,
+  clientFilter,
+  setClientFilter,
+
+  description,
+  setDescription,
+
+  pickupLat,
+  setPickupLat,
+  pickupLng,
+  setPickupLng,
+
+  dropoffLat,
+  setDropoffLat,
+  dropoffLng,
+  setDropoffLng,
+
+  rating,
+  setRating,
+  review,
+  setReview,
+
+  paymentProofFile,
+  setPaymentProofFile,
+
+  distanciaKm,
+  precioEstimado,
+
+  filteredClientTasks,
+  clientCompletedTasks,
+  clientCancelledTasks,
+  clientTotalSpent,
+
+  obtenerUbicacion,
+  seleccionarDestino,
+  cargarMisMandadosCliente,
+  crearMandado,
+  cancelarMandado,
+  calificarMandado,
+  subirComprobantePago,
+} = useClient({
+  showToast,
+  cargarNotificaciones,
+  defaultCity: DEFAULT_CITY,
+  serviceRadiusKm: SERVICE_RADIUS_KM,
+});
+
 
 
   const [tasks, setTasks] = useState([]);
   const [myTasks, setMyTasks] = useState([]);
-  const [clientTasks, setClientTasks] = useState([]);
+  
   const [earnings, setEarnings] = useState(null);
 
   
  
 
-  const [clientFilter, setClientFilter] = useState("ALL");
+ 
   const [runnerFilter, setRunnerFilter] = useState("ALL");
   const [runnerStats, setRunnerStats] = useState(null);
 
-  const [description, setDescription] = useState("");
-  const [pickupLat, setPickupLat] = useState("");
-  const [pickupLng, setPickupLng] = useState("");
-  const [dropoffLat, setDropoffLat] = useState("");
-  const [dropoffLng, setDropoffLng] = useState("");
 
-  const [rating, setRating] = useState(5);
-  const [review, setReview] = useState("");
 
   const [trackingTaskId, setTrackingTaskId] = useState(null);
   
   const [identificationFile, setIdentificationFile] = useState(null);
   const [licenseFile, setLicenseFile] = useState(null);
   const [deliveryProofFile, setDeliveryProofFile] = useState(null);
-  const [paymentProofFile, setPaymentProofFile] = useState(null);
+  
 const messageInputRef = useRef(null);
 
 const [activeSection, setActiveSection] = useState("dashboard");
@@ -268,64 +311,6 @@ useEffect(() => {
     };
   }, []);
 
-  const estaDentroDeSantiago = (lat, lng) => {
-  const distancia = calcularDistanciaKm(
-    DEFAULT_CITY.lat,
-    DEFAULT_CITY.lng,
-    lat,
-    lng
-  );
-
-  return distancia <= SERVICE_RADIUS_KM;
-};
-
-  const calcularDistanciaKm = (lat1, lng1, lat2, lng2) => {
-    if (!lat1 || !lng1 || !lat2 || !lng2) return 0;
-
-    const R = 6371;
-    const dLat = ((Number(lat2) - Number(lat1)) * Math.PI) / 180;
-    const dLng = ((Number(lng2) - Number(lng1)) * Math.PI) / 180;
-
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((Number(lat1) * Math.PI) / 180) *
-        Math.cos((Number(lat2) * Math.PI) / 180) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2);
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
-  };
-
-  const distanciaKm = calcularDistanciaKm(
-    pickupLat,
-    pickupLng,
-    dropoffLat,
-    dropoffLng
-  );
-
-  const precioEstimado =
-    distanciaKm > 0 ? Math.round(50 + distanciaKm * 35) : 0;
-
-  const obtenerUbicacion = () => {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setPickupLat(position.coords.latitude);
-        setPickupLng(position.coords.longitude);
-        alert("Ubicación obtenida");
-      },
-      () => {
-        alert("No se pudo obtener ubicación");
-      }
-    );
-  };
-
-  const seleccionarDestino = (lat, lng) => {
-    setDropoffLat(lat);
-    setDropoffLng(lng);
-  };
-
   const enviarUbicacionRunner = async (taskId, mostrarAlerta = true) => {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
@@ -373,112 +358,6 @@ useEffect(() => {
 
     setTrackingTaskId(null);
     showToast("Tracking detenido", "info");
-  };
-
-
-
- 
-
-
-
-  const crearMandado = async () => {
-    try {
-      if (!description) {
-        alert("Escribe una descripción");
-        return;
-      }
-
-      if (!pickupLat || !pickupLng) {
-        alert("Primero usa tu ubicación");
-        return;
-      }
-
-      if (!dropoffLat || !dropoffLng) {
-        alert("Selecciona el destino tocando el mapa");
-        return;
-      }
-
-      if (
-  !estaDentroDeSantiago(Number(pickupLat), Number(pickupLng)) ||
-  !estaDentroDeSantiago(Number(dropoffLat), Number(dropoffLng))
-) {
-  showToast(
-    "Por el momento DeUnaGo solo está disponible en Santiago de los Caballeros.",
-    "error"
-  );
-  return;
-}
-
-      await axios.post(
-        `${API_URL}/tasks`,
-        {
-          description,
-          pickupLat: Number(pickupLat),
-          pickupLng: Number(pickupLng),
-          dropoffLat: Number(dropoffLat),
-          dropoffLng: Number(dropoffLng),
-          distanceKm: Number(distanciaKm.toFixed(2)),
-          estimatedPrice: precioEstimado,
-        },
-        getAuthHeaders()
-      );
-
-      showToast(`Mandado creado. Precio estimado: RD$${precioEstimado}`, "success");
-
-      setDescription("");
-      setPickupLat("");
-      setPickupLng("");
-      setDropoffLat("");
-      setDropoffLng("");
-
-      cargarMisMandadosCliente();
-    } catch (error) {
-     showToast(
-  error.response?.data?.message || "Error creando mandado",
-  "error"
-);
-    }
-  };
-
-  const cargarMisMandadosCliente = async () => {
-    const res = await axios.get(`${API_URL}/tasks/client/my`, getAuthHeaders());
-    setClientTasks(res.data);
-  };
-
-  const cancelarMandado = async (taskId) => {
-    try {
-      await axios.patch(
-        `${API_URL}/tasks/${taskId}/cancel`,
-        {},
-        getAuthHeaders()
-      );
-
-      showToast("Mandado cancelado", "success");
-      cargarMisMandadosCliente();
-    } catch (error) {
-      showToast(error.response?.data?.message || "Error cancelando mandado", "error");
-    }
-  };
-
-  const calificarMandado = async (taskId) => {
-    try {
-      await axios.patch(
-        `${API_URL}/tasks/${taskId}/rate`,
-        {
-          rating: Number(rating),
-          review,
-        },
-        getAuthHeaders()
-      );
-
-      showToast("Mandado calificado", "success");
-      setRating(5);
-      setReview("");
-      cargarMisMandadosCliente();
-      cargarNotificaciones();
-    } catch (error) {
-      alert(error.response?.data?.message || "Error calificando mandado");
-    }
   };
 
   const cargarMandados = async () => {
@@ -634,33 +513,6 @@ useEffect(() => {
   }
 };
 
-const subirComprobantePago = async (taskId) => {
-  try {
-    if (!paymentProofFile) {
-      alert("Selecciona un comprobante de pago");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", paymentProofFile);
-
-    await axios.post(
-      `${API_URL}/tasks/${taskId}/payment-proof`,
-      formData,
-      getUploadHeaders()
-    );
-
-    showToast("Comprobante de pago subido correctamente", "success");
-    setPaymentProofFile(null);
-    cargarMisMandadosCliente();
-  } catch (error) {
-    showToast(
-  error.response?.data?.message || "Error subiendo comprobante de pago",
-  "error"
-);
-  }
-};
-
 const actualizarUbicacionRunnerEnVivo = async () => {
   console.log("🚀 Entró a actualizarUbicacionRunnerEnVivo");
   if (!navigator.geolocation) {
@@ -716,15 +568,6 @@ const actualizarUbicacionRunnerEnVivo = async () => {
     cargarNotificaciones();
   };
 
-
-
-
-
-
-
-
-  
-
   const getBadgeClass = (status) => {
     if (status === "OPEN") return "badge badge-open";
     if (status === "ACCEPTED") return "badge badge-accepted";
@@ -763,30 +606,10 @@ const actualizarUbicacionRunnerEnVivo = async () => {
     );
   };
 
-  const filteredClientTasks =
-    clientFilter === "ALL"
-      ? clientTasks
-      : clientTasks.filter((task) => task.status === clientFilter);
-
   const filteredRunnerTasks =
     runnerFilter === "ALL"
       ? myTasks
-      : myTasks.filter((task) => task.status === runnerFilter);
-
-
-const clientCompletedTasks = clientTasks.filter(
-  (task) => task.status === "DELIVERED" || task.status === "COMPLETED"
-);
-
-const clientCancelledTasks = clientTasks.filter(
-  (task) => task.status === "CANCELLED"
-);
-
-const clientTotalSpent = clientTasks
-  .filter((task) => task.paymentStatus === "PAID")
-  .reduce((total, task) => total + (task.estimatedPrice || 0), 0);
-
- 
+      : myTasks.filter((task) => task.status === runnerFilter); 
 
 if (showSplash) {
   return (
