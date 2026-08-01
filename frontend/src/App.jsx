@@ -15,6 +15,7 @@ import ChatBox from "./components/ChatBox";
 import useProfile from "./hooks/useProfile";
 import useAuth from "./hooks/useAuth";
 import useClient from "./hooks/useClient";
+import useRunner from "./hooks/useRunner";
 
 import logoFull from "./assets/logo-full.png";
 import logoIcon from "./assets/logo-icon.png";
@@ -186,27 +187,50 @@ function App() {
   serviceRadiusKm: SERVICE_RADIUS_KM,
 });
 
+const {
+  tasks,
+  setTasks,
+  myTasks,
+  setMyTasks,
+  earnings,
+  setEarnings,
+  runnerFilter,
+  setRunnerFilter,
+  runnerStats,
+  setRunnerStats,
 
+  trackingTaskId,
+  setTrackingTaskId,
 
-  const [tasks, setTasks] = useState([]);
-  const [myTasks, setMyTasks] = useState([]);
-  
-  const [earnings, setEarnings] = useState(null);
+  identificationFile,
+  setIdentificationFile,
+  licenseFile,
+  setLicenseFile,
+  deliveryProofFile,
+  setDeliveryProofFile,
 
-  
- 
-
- 
-  const [runnerFilter, setRunnerFilter] = useState("ALL");
-  const [runnerStats, setRunnerStats] = useState(null);
-
-
-
-  const [trackingTaskId, setTrackingTaskId] = useState(null);
-  
-  const [identificationFile, setIdentificationFile] = useState(null);
-  const [licenseFile, setLicenseFile] = useState(null);
-  const [deliveryProofFile, setDeliveryProofFile] = useState(null);
+  cargarMandados,
+  cargarMisMandados,
+  cargarGanancias,
+  cargarEstadisticasRunner,
+  aceptarMandado,
+  actualizarDisponibilidadRunner,
+  subirIdentificacion,
+subirLicencia,
+subirComprobanteEntrega,
+enviarUbicacionRunner,
+iniciarTrackingRunner,
+detenerTrackingRunner,
+marcarRecogido,
+marcarEnCamino,
+marcarEntregado,
+actualizarUbicacionRunnerEnVivo,
+} = useRunner({
+  user,
+  showToast,
+  cargarNotificaciones,
+  trackingIntervalRef,
+});  
   
 const messageInputRef = useRef(null);
 
@@ -310,263 +334,6 @@ useEffect(() => {
       }
     };
   }, []);
-
-  const enviarUbicacionRunner = async (taskId, mostrarAlerta = true) => {
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        await axios.patch(
-          `${API_URL}/tasks/${taskId}/runner-location`,
-          {
-            runnerLat: position.coords.latitude,
-            runnerLng: position.coords.longitude,
-          },
-          getAuthHeaders()
-        );
-
-        if (mostrarAlerta) {
-          alert("Ubicación enviada");
-        }
-
-        cargarMisMandados();
-      },
-      () => {
-        alert("No se pudo obtener la ubicación del mandadero");
-      }
-    );
-  };
-
-  const iniciarTrackingRunner = async (taskId) => {
-    if (trackingIntervalRef.current) {
-      clearInterval(trackingIntervalRef.current);
-    }
-
-    setTrackingTaskId(taskId);
-    await enviarUbicacionRunner(taskId, false);
-
-    trackingIntervalRef.current = setInterval(() => {
-      enviarUbicacionRunner(taskId, false);
-    }, 10000);
-
-    showToast("Tracking iniciado", "info");
-  };
-
-  const detenerTrackingRunner = () => {
-    if (trackingIntervalRef.current) {
-      clearInterval(trackingIntervalRef.current);
-      trackingIntervalRef.current = null;
-    }
-
-    setTrackingTaskId(null);
-    showToast("Tracking detenido", "info");
-  };
-
-  const cargarMandados = async () => {
-    try {
-      const res = await axios.get(`${API_URL}/tasks/available`, getAuthHeaders());
-      setTasks(res.data);
-    } catch (error) {
-      alert(
-        error.response?.data?.message ||
-          "No puedes ver mandados disponibles todavía"
-      );
-    }
-  };
-
-  const cargarMisMandados = async () => {
-    const res = await axios.get(`${API_URL}/tasks/my`, getAuthHeaders());
-    setMyTasks(res.data);
-  };
-
-  const cargarGanancias = async () => {
-    const res = await axios.get(`${API_URL}/runners/earnings`, getAuthHeaders());
-    setEarnings(res.data);
-  };
-
-  const cargarEstadisticasRunner = async () => {
-    const res = await axios.get(
-      `${API_URL}/runners/me/stats`,
-      getAuthHeaders()
-    );
-
-    setRunnerStats(res.data);
-  };
-
-  const aceptarMandado = async (taskId) => {
-    try {
-      await axios.patch(
-        `${API_URL}/tasks/${taskId}/accept`,
-        {},
-        getAuthHeaders()
-      );
-
-      cargarMandados();
-      cargarMisMandados();
-      cargarNotificaciones();
-    } catch (error) {
-      alert(error.response?.data?.message || "No puedes aceptar este mandado");
-    }
-  };
-
-  const actualizarDisponibilidadRunner = async (isAvailable) => {
-    try {
-      const res = await axios.patch(
-        `${API_URL}/runners/availability`,
-        { isAvailable },
-        getAuthHeaders()
-      );
-
-      const updatedUser = {
-        ...user,
-        ...res.data,
-      };
-
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-
-      alert(isAvailable ? "Ahora estás disponible" : "Ahora no estás disponible");
-      window.location.reload();
-    } catch (error) {
-      alert(error.response?.data?.message || "Error actualizando disponibilidad");
-    }
-  };
-
-  const subirIdentificacion = async () => {
-    try {
-      if (!identificationFile) {
-        alert("Selecciona un archivo de identificación");
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("file", identificationFile);
-
-      const res = await axios.post(
-        `${API_URL}/runners/upload-identification`,
-        formData,
-        getUploadHeaders()
-      );
-
-      const updatedUser = {
-        ...user,
-        ...res.data.user,
-      };
-
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-
-      alert("Identificación subida correctamente. Espera validación del admin.");
-      window.location.reload();
-    } catch (error) {
-      alert(error.response?.data?.message || "Error subiendo identificación");
-    }
-  };
-
-  const subirLicencia = async () => {
-    try {
-      if (!licenseFile) {
-        alert("Selecciona un archivo de licencia");
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append("file", licenseFile);
-
-      const res = await axios.post(
-        `${API_URL}/runners/upload-license`,
-        formData,
-        getUploadHeaders()
-      );
-
-      const updatedUser = {
-        ...user,
-        ...res.data.user,
-      };
-
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-
-      alert("Licencia subida correctamente. Espera validación del admin.");
-      window.location.reload();
-    } catch (error) {
-      alert(error.response?.data?.message || "Error subiendo licencia");
-    }
-  };
-
-  const subirComprobanteEntrega = async (taskId) => {
-  try {
-    if (!deliveryProofFile) {
-      alert("Selecciona una foto del comprobante");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", deliveryProofFile);
-
-    await axios.post(
-      `${API_URL}/tasks/${taskId}/delivery-proof`,
-      formData,
-      getUploadHeaders()
-    );
-
-    alert("Comprobante subido correctamente");
-    setDeliveryProofFile(null);
-    cargarMisMandados();
-  } catch (error) {
-    alert(error.response?.data?.message || "Error subiendo comprobante");
-  }
-};
-
-const actualizarUbicacionRunnerEnVivo = async () => {
-  console.log("🚀 Entró a actualizarUbicacionRunnerEnVivo");
-  if (!navigator.geolocation) {
-    return;
-  }
-
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      await axios.patch(
-        `${API_URL}/runners/location`,
-        {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        },
-        getAuthHeaders()
-      );
-    },
-    () => {
-      console.log("No se pudo obtener ubicación del runner");
-    }
-  );
-};
-
-
-
-  const marcarRecogido = async (taskId) => {
-    await axios.patch(`${API_URL}/tasks/${taskId}/pickup`, {}, getAuthHeaders());
-    cargarMisMandados();
-  };
-
-  const marcarEnCamino = async (taskId) => {
-    await axios.patch(
-      `${API_URL}/tasks/${taskId}/on-the-way`,
-      {},
-      getAuthHeaders()
-    );
-    cargarMisMandados();
-  };
-
-  const marcarEntregado = async (taskId) => {
-    await axios.patch(
-      `${API_URL}/tasks/${taskId}/deliver`,
-      {},
-      getAuthHeaders()
-    );
-
-    if (trackingTaskId === taskId) {
-      detenerTrackingRunner();
-    }
-
-    cargarMisMandados();
-    cargarGanancias();
-    cargarNotificaciones();
-  };
 
   const getBadgeClass = (status) => {
     if (status === "OPEN") return "badge badge-open";
