@@ -9,6 +9,8 @@ import Sidebar from "./components/Sidebar";
 import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import RunnerDashboard from "./pages/runner/Dashboard";
+import ClientDashboard from "./pages/Client/Dashboard";
+
 
 import useAdmin from "./hooks/useAdmin";
 import useChat from "./hooks/useChat";
@@ -715,287 +717,53 @@ if (showSplash) {
           </>
         )}
   
-        {user?.role === "CLIENT" && (
-          <>
-          <div id="profile-section" className="card">
-  <h2>👤 Mi perfil</h2>
+{user?.role === "CLIENT" && (
+  <ClientDashboard
+    profile={profile}
+    profileName={profileName}
+    setProfileName={setProfileName}
+    profileAddress={profileAddress}
+    setProfileAddress={setProfileAddress}
+    setProfilePhotoFile={setProfilePhotoFile}
+    cargarPerfil={cargarPerfil}
+    guardarPerfil={guardarPerfil}
+    subirFotoPerfil={subirFotoPerfil}
 
-  <button onClick={cargarPerfil} className="button button-primary">
-    Cargar perfil
-  </button>
-<div className="profile-stats-grid">
-  <div className="profile-stat-card">
-    <span>Mandados creados</span>
-    <strong>{clientTasks.length}</strong>
-  </div>
+    clientTasks={clientTasks}
+    clientCompletedTasks={clientCompletedTasks}
+    clientCancelledTasks={clientCancelledTasks}
+    clientTotalSpent={clientTotalSpent}
 
-  <div className="profile-stat-card">
-    <span>Completados</span>
-    <strong>{clientCompletedTasks.length}</strong>
-  </div>
+    description={description}
+    setDescription={setDescription}
+    obtenerUbicacion={obtenerUbicacion}
+    pickupLat={pickupLat}
+    pickupLng={pickupLng}
+    dropoffLat={dropoffLat}
+    dropoffLng={dropoffLng}
+    seleccionarDestino={seleccionarDestino}
+    distanciaKm={distanciaKm}
+    precioEstimado={precioEstimado}
+    crearMandado={crearMandado}
 
-  <div className="profile-stat-card">
-    <span>Cancelados</span>
-    <strong>{clientCancelledTasks.length}</strong>
-  </div>
-
-  <div className="profile-stat-card">
-    <span>Total gastado</span>
-    <strong>RD${clientTotalSpent}</strong>
-  </div>
-</div>
-
-  {profile && (
-    <>
-      {profile.profilePhotoUrl && (
-        <img
-          src={profile.profilePhotoUrl}
-          alt="Perfil"
-          className="profile-photo"
-        />
-      )}
-
-      <input
-        className="input"
-        placeholder="Nombre"
-        value={profileName}
-        onChange={(e) => setProfileName(e.target.value)}
-      />
-
-      <input
-        className="input"
-        placeholder="Dirección principal"
-        value={profileAddress}
-        onChange={(e) => setProfileAddress(e.target.value)}
-      />
-
-      <button onClick={guardarPerfil} className="button button-success">
-        Guardar perfil
-      </button>
-
-      <h3>Foto de perfil</h3>
-
-      <input
-        type="file"
-        className="input"
-        onChange={(e) => setProfilePhotoFile(e.target.files[0])}
-      />
-
-      <button onClick={subirFotoPerfil} className="button button-primary">
-        Subir foto
-      </button>
-    </>
-  )}
-</div>
-            <div className="card">
-              <h2 className="card-title">📝 Crear mandado</h2>
-
-              <input
-                className="input"
-                placeholder="Descripción"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-
-              <button onClick={obtenerUbicacion} className="button button-blue">
-                📍 Usar mi ubicación
-              </button>
-
-              <p>Recogida Lat: {pickupLat || "No detectada"}</p>
-              <p>Recogida Lng: {pickupLng || "No detectada"}</p>
-
-              <h3>Selecciona el destino tocando el mapa</h3>
-
-              <SelectLocationMap
-                pickupLat={pickupLat}
-                pickupLng={pickupLng}
-                dropoffLat={dropoffLat}
-                dropoffLng={dropoffLng}
-                onSelectDropoff={seleccionarDestino}
-              />
-
-              <p>Destino Lat: {dropoffLat || "No seleccionado"}</p>
-              <p>Destino Lng: {dropoffLng || "No seleccionado"}</p>
-
-              {distanciaKm > 0 && (
-                <div className="task-card">
-                  <h3>Resumen del mandado</h3>
-                  <p>Distancia aproximada: {distanciaKm.toFixed(2)} km</p>
-                  <p>Precio estimado: RD${precioEstimado}</p>
-                </div>
-              )}
-
-              <button onClick={crearMandado} className="button button-primary">
-                Crear mandado
-              </button>
-            </div>
-
-            <div id="tasks-section" className="card">
-  <h2>📋 Mis mandados creados</h2>
-
-              <button
-                onClick={cargarMisMandadosCliente}
-                className="button button-primary"
-              >
-                Cargar mis mandados
-              </button>
-
-              <div className="filters-bar">
-                {[
-                  "ALL",
-                  "OPEN",
-                  "ACCEPTED",
-                  "PICKED_UP",
-                  "ON_THE_WAY",
-                  "DELIVERED",
-                  "CANCELLED",
-                ].map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => setClientFilter(status)}
-                    className={
-                      clientFilter === status ? "filter-btn active" : "filter-btn"
-                    }
-                  >
-                    {status === "ALL" ? "Todos" : getStatusText(status)}
-                  </button>
-                ))}
-              </div>
-
-              {filteredClientTasks.length === 0 && (
-                <p className="empty">No hay mandados con este filtro.</p>
-              )}
-
-              {filteredClientTasks.map((task) => (
-                <div key={task.id} className="task-card">
-                  <div className={getBadgeClass(task.status)}>
-                    {getStatusText(task.status)}
-                  </div>
-
-                  <h3>{task.description}</h3>
-
-                  <p>Distancia: {task.distanceKm} km</p>
-                  <p>Precio estimado: RD${task.estimatedPrice}</p>
-                  <p>Comisión DeUnaGo: RD${task.platformFee}</p>
-<p>Ganancia runner: RD${task.runnerEarnings}</p>
-
-                  <p>
-  Estado del pago:{" "}
-  <strong>
-    {task.paymentStatus === "PAID"
-      ? "Pagado"
-      : task.paymentStatus === "PENDING_REVIEW"
-      ? "En revisión"
-      : "Pendiente"}
-  </strong>
-</p>
-
-{task.paymentProofUrl && (
-  <a
-    href={task.paymentProofUrl}
-    target="_blank"
-    rel="noreferrer"
-    className="document-link"
-  >
-    🧾 Ver comprobante de pago
-  </a>
+    filteredClientTasks={filteredClientTasks}
+    clientFilter={clientFilter}
+    setClientFilter={setClientFilter}
+    cargarMisMandadosCliente={cargarMisMandadosCliente}
+    getBadgeClass={getBadgeClass}
+    getStatusText={getStatusText}
+    canChat={canChat}
+    abrirChat={abrirChat}
+    cancelarMandado={cancelarMandado}
+    rating={rating}
+    setRating={setRating}
+    review={review}
+    setReview={setReview}
+    calificarMandado={calificarMandado}
+    setPaymentProofFile={setPaymentProofFile}
+    subirComprobantePago={subirComprobantePago}
+  />
 )}
-
-{task.paymentStatus !== "PAID" && (
-  <div className="upload-card">
-    <h3>🧾 Subir comprobante de pago</h3>
-
-    <input
-      type="file"
-      className="input"
-      onChange={(e) => setPaymentProofFile(e.target.files[0])}
-    />
-
-    <button
-      onClick={() => subirComprobantePago(task.id)}
-      className="button button-primary"
-    >
-      Subir comprobante
-    </button>
-  </div>
-)}
-
-                  <MapView
-                    pickupLat={task.pickupLat}
-                    pickupLng={task.pickupLng}
-                    dropoffLat={task.dropoffLat}
-                    dropoffLng={task.dropoffLng}
-                    runnerLat={task.runnerLat}
-                    runnerLng={task.runnerLng}
-                  />
-
-{task.deliveryProofUrl && (
-  <a
-    href={task.deliveryProofUrl}
-    target="_blank"
-    rel="noreferrer"
-    className="document-link"
-  >
-    📸 Ver comprobante de entrega
-  </a>
-)}
-
-                  {canChat(task) && (
-                    <button
-                      onClick={() => abrirChat(task.id)}
-                      className="button button-primary"
-                    >
-                      💬 Abrir chat
-                    </button>
-                  )}
-
-                  {task.status === "OPEN" && (
-                    <button
-                      onClick={() => cancelarMandado(task.id)}
-                      className="button button-danger"
-                    >
-                      Cancelar mandado
-                    </button>
-                  )}
-
-                  {(task.status === "DELIVERED" ||
-                    task.status === "COMPLETED") &&
-                    !task.rating && (
-                      <div className="task-card">
-                        <h3>Calificar mandadero</h3>
-
-                        <select
-                          className="input"
-                          value={rating}
-                          onChange={(e) => setRating(e.target.value)}
-                        >
-                          <option value="5">5 estrellas</option>
-                          <option value="4">4 estrellas</option>
-                          <option value="3">3 estrellas</option>
-                          <option value="2">2 estrellas</option>
-                          <option value="1">1 estrella</option>
-                        </select>
-
-                        <input
-                          className="input"
-                          placeholder="Comentario"
-                          value={review}
-                          onChange={(e) => setReview(e.target.value)}
-                        />
-
-                        <button
-                          onClick={() => calificarMandado(task.id)}
-                          className="button button-success"
-                        >
-                          Enviar calificación
-                        </button>
-                      </div>
-                    )}
-                </div>
-              ))}
-            </div>
-          </>
-        )}
 
 {user?.role === "RUNNER" && (
   <RunnerDashboard
