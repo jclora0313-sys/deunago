@@ -14,7 +14,8 @@ import LandingPage from "./pages/LandingPage";
 import Navbar from "./components/Navbar";
 import AuthenticatedLayout from "./layouts/AuthenticatedLayout";
 
-
+import useSocketEvents from "./hooks/useSocketEvents";
+import useLiveUpdates from "./hooks/useLiveUpdates";
 import useAdmin from "./hooks/useAdmin";
 import useChat from "./hooks/useChat";
 import useNotifications from "./hooks/useNotifications";
@@ -270,31 +271,21 @@ const getAuthHeaders = () => ({
     setTasks((prev) => prev.filter((task) => task.id !== updatedTask.id));
   };
 
-  useEffect(() => {
-  if (user?.role !== "RUNNER") return;
+  useSocketEvents({
+  socket,
+  user,
+  activeChatTaskId,
+  setNotifications,
+  updateTaskInState,
+  setMessages,
+});
 
-  actualizarUbicacionRunnerEnVivo();
-
-  const interval = setInterval(() => {
-    actualizarUbicacionRunnerEnVivo();
-  }, 15000);
-
-  return () => clearInterval(interval);
-}, [user?.role]);
-
-useEffect(() => {
-  if (user?.role !== "ADMIN") return;
-
-  cargarRunnersEnVivo();
-  cargarMandadosActivos();
-
-  const interval = setInterval(() => {
-    cargarRunnersEnVivo();
-    cargarMandadosActivos();
-  }, 15000);
-
-  return () => clearInterval(interval);
-}, [user?.role]);
+ useLiveUpdates({
+  user,
+  actualizarUbicacionRunnerEnVivo,
+  cargarRunnersEnVivo,
+  cargarMandadosActivos,
+});
 
 useEffect(() => {
   const timer = setTimeout(() => {
@@ -303,38 +294,6 @@ useEffect(() => {
 
   return () => clearTimeout(timer);
 }, []);
-
-  useEffect(() => {
-    if (user?.id) {
-      socket.emit("join", user.id);
-
-      socket.on("notification", (notification) => {
-        setNotifications((prev) => [notification, ...prev]);
-        alert(notification.message);
-      });
-
-      socket.on("runnerLocationUpdated", (updatedTask) => {
-        updateTaskInState(updatedTask);
-      });
-
-      socket.on("taskUpdated", (updatedTask) => {
-        updateTaskInState(updatedTask);
-      });
-
-      socket.on("newMessage", (message) => {
-        if (message.taskId === activeChatTaskId) {
-          setMessages((prev) => [...prev, message]);
-        }
-      });
-    }
-
-    return () => {
-      socket.off("notification");
-      socket.off("runnerLocationUpdated");
-      socket.off("taskUpdated");
-      socket.off("newMessage");
-    };
-  }, [user?.id, activeChatTaskId]);
 
   useEffect(() => {
     return () => {
