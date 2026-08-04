@@ -5,20 +5,19 @@ import "./App.css";
 import MapView from "./components/MapView";
 import SelectLocationMap from "./components/SelectLocationMap";
 
-import Sidebar from "./components/Sidebar";
+
 import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import RunnerDashboard from "./pages/runner/Dashboard";
 import ClientDashboard from "./pages/Client/Dashboard";
 import LandingPage from "./pages/LandingPage";
-import NotificationsFeed from "./components/NotificationsFeed";
 import Navbar from "./components/Navbar";
+import AuthenticatedLayout from "./layouts/AuthenticatedLayout";
 
 
 import useAdmin from "./hooks/useAdmin";
 import useChat from "./hooks/useChat";
 import useNotifications from "./hooks/useNotifications";
-import ChatBox from "./components/ChatBox";
 import useProfile from "./hooks/useProfile";
 import useAuth from "./hooks/useAuth";
 import useClient from "./hooks/useClient";
@@ -431,29 +430,19 @@ if (showSplash) {
         {user && (
           <>
 
-<div className="app-layout">
-  <Sidebar
+<AuthenticatedLayout
   user={user}
   logoIcon={logoIcon}
   logout={logout}
   activeSection={activeSection}
   setActiveSection={setActiveSection}
-/>
 
-  <main className="app-content">
-
-  <NotificationsFeed
   notifications={notifications}
   cargarNotificaciones={cargarNotificaciones}
   marcarNotificacionLeida={marcarNotificacionLeida}
-/>
 
-
-<div id="chat-section"></div>
-            <ChatBox
   activeChatTaskId={activeChatTaskId}
   messages={messages}
-  user={user}
   profile={profile}
   messageInputRef={messageInputRef}
   messageText={messageText}
@@ -461,8 +450,6 @@ if (showSplash) {
   cerrarChat={cerrarChat}
   enviarMensaje={enviarMensaje}
 />
-            </main>
-</div>
           </>
         )}
   
