@@ -10,6 +10,9 @@ import SplashScreen from "./components/SplashScreen";
 import AdminDashboard from "./pages/Admin/Dashboard";
 import RunnerDashboard from "./pages/runner/Dashboard";
 import ClientDashboard from "./pages/Client/Dashboard";
+import LandingPage from "./pages/LandingPage";
+import NotificationsFeed from "./components/NotificationsFeed";
+import Navbar from "./components/Navbar";
 
 
 import useAdmin from "./hooks/useAdmin";
@@ -389,268 +392,40 @@ if (showSplash) {
       </div>
     )}
 
-    <div className="navbar">
-      <div>
-        <div className="logo">DeUnaGo</div>
+ <Navbar
+  user={user}
+  profile={profile}
+  logout={logout}
+  notifications={notifications}
+  showNotificationsPanel={showNotificationsPanel}
+  setShowNotificationsPanel={setShowNotificationsPanel}
+  cargarNotificaciones={cargarNotificaciones}
+  marcarNotificacionLeida={marcarNotificacionLeida}
+  marcarTodasNotificacionesLeidas={marcarTodasNotificacionesLeidas}
+/>
 
-        {user && (
-  <div className="user-info">
-    {profile?.profilePhotoUrl && (
-      <img
-        src={profile.profilePhotoUrl}
-        alt="Perfil"
-        className="navbar-avatar"
-      />
-    )}
-
-    <span>
-      {user.name} • {user.role}
-    </span>
-  </div>
-)}
-      </div>
-
-      {user && (
-        <div className="navbar-actions">
-          <div
-  className="notification-counter"
-  onClick={() => {
-  setShowNotificationsPanel(!showNotificationsPanel);
-  cargarNotificaciones();
-}}
->
-  🔔 {notifications.filter((n) => !n.read).length}
-</div>
-
-          <button onClick={logout} className="button button-danger">
-            Logout
-          </button>
-        </div>
-      )}
-    </div>
-{showNotificationsPanel && (
-  <div className="notifications-panel">
-    <h3>🔔 Notificaciones</h3>
-
-<button
-  onClick={marcarTodasNotificacionesLeidas}
-  className="button button-primary"
->
-  ✓ Marcar todas como leídas
-</button>
-    {notifications.length === 0 && (
-      <p className="empty">No tienes notificaciones.</p>
-    )}
-
-    {notifications.map((notification) => (
-      <div key={notification.id} className="notification-item">
-        <p>{notification.message}</p>
-        <span>{notification.read ? "Leída" : "Nueva"}</span>
-
-        {!notification.read && (
-          <button
-            onClick={() => marcarNotificacionLeida(notification.id)}
-            className="button button-blue"
-          >
-            Marcar leída
-          </button>
-        )}
-      </div>
-    ))}
-  </div>
-)}
 <div className="landing-logo-wrap">
   <img src={logoFull} alt="DeUnaGo" className="landing-logo-img" />
 
 </div>
 
-<div className="landing-rating">
-  ⭐⭐⭐⭐⭐
-  <span>4.9/5 • Cientos de mandados completados</span>
-</div>
-
-
       <div className="container">
  {!user && (
-  <div className="landing-shell landing-modern">
-    <div className="landing-orbits">
-  <span></span>
-  <span></span>
-  <span></span>
-</div>
-    <section className="landing-hero">
-  <div className="landing-badge">
-  🇩🇴 Disponible actualmente en Santiago de los Caballeros
-</div>
-
-      <h1 className="landing-title">
-  El mandadero que necesitas,
-  <span> cuando lo necesitas.</span>
-</h1>
-
-<p className="landing-description">
-  Solicita mandados en Santiago de los Caballeros en pocos segundos.
-  Sigue el recorrido en tiempo real, conversa con tu mandadero y
-  recibe todo con seguridad y rapidez.
-</p>
-
-<div className="landing-stats">
-
-  <div className="landing-stat">
-    <strong>⚡</strong>
-    <span>Entrega rápida</span>
-  </div>
-
-  <div className="landing-stat">
-    <strong>🛵</strong>
-    <span>Runners verificados</span>
-  </div>
-
-  <div className="landing-stat">
-    <strong>📍</strong>
-    <span>Tracking en vivo</span>
-  </div>
-
-</div>
-
-<div className="landing-benefits">
-
-  <div>✅ Seguimiento en tiempo real</div>
-
-  <div>🛵 Mandaderos previamente verificados</div>
-
-  <div>🔒 Pagos seguros y comprobantes digitales</div>
-
-  <div>⚡ Servicio disponible en Santiago</div>
-
-</div>
-
-      <div className="landing-actions">
-        <button
-          onClick={() => setMode("register")}
-          className="button button-primary"
-        >
-          Crear cuenta
-        </button>
-
-        <button
-          onClick={() => setMode("login")}
-          className="button button-blue"
-        >
-          Iniciar sesión
-        </button>
-      </div>
-
-      <div className="landing-features">
-        <div>
-          <strong>📍 Tracking</strong>
-          <span>Ubicación en tiempo real</span>
-        </div>
-
-        <div>
-          <strong>💳 Pago digital</strong>
-          <span>Control de pagos y comisión</span>
-        </div>
-
-        <div>
-          <strong>🛵 Mandaderos</strong>
-          <span>Validación de documentos</span>
-        </div>
-      </div>
-    </section>
-
-    <section className="auth-card landing-auth-card">
-      <div className="auth-tabs">
-        <button
-          onClick={() => setMode("login")}
-          className={mode === "login" ? "auth-tab active" : "auth-tab"}
-        >
-          Login
-        </button>
-
-        <button
-          onClick={() => setMode("register")}
-          className={mode === "register" ? "auth-tab active" : "auth-tab"}
-        >
-          Registro
-        </button>
-      </div>
-
-      {mode === "login" && (
-        <>
-          <h2>Bienvenido</h2>
-          <p className="auth-subtitle">Inicia sesión para continuar</p>
-
-          <input
-            className="input"
-            placeholder="Teléfono"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-
-          <input
-            className="input"
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-
-          <button
-            onClick={login}
-            className="button button-primary auth-main-btn"
-          >
-            Iniciar sesión
-          </button>
-        </>
-      )}
-
-      {mode === "register" && (
-        <>
-          <h2>Crear cuenta</h2>
-          <p className="auth-subtitle">Empieza a usar DeUnaGo hoy</p>
-
-          <input
-            className="input"
-            placeholder="Nombre"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-
-          <input
-            className="input"
-            placeholder="Teléfono"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-
-          <input
-            className="input"
-            type="password"
-            placeholder="Contraseña"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-
-          <select
-            className="input"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-          >
-            <option value="CLIENT">Cliente</option>
-            <option value="RUNNER">Mandadero</option>
-          </select>
-
-          <button
-            onClick={register}
-            className="button button-primary auth-main-btn"
-          >
-            Crear cuenta
-          </button>
-        </>
-      )}
-    </section>
-  </div>
+  <LandingPage
+    logoFull={logoFull}
+    mode={mode}
+    setMode={setMode}
+    name={name}
+    setName={setName}
+    phone={phone}
+    setPhone={setPhone}
+    password={password}
+    setPassword={setPassword}
+    role={role}
+    setRole={setRole}
+    login={login}
+    register={register}
+  />
 )}
 
         {user && (
@@ -667,37 +442,11 @@ if (showSplash) {
 
   <main className="app-content">
 
-            <div id="dashboard-section" className="card">
-              <div id="notifications-section"></div>
-    <h2>🔔 Notificaciones en tiempo real</h2>
-
-              <button
-                onClick={cargarNotificaciones}
-                className="button button-primary"
-              >
-                Cargar notificaciones
-              </button>
-
-              {notifications.length === 0 && (
-                <p className="empty">No tienes notificaciones.</p>
-              )}
-
-              {notifications.map((notification) => (
-                <div key={notification.id} className="task-card">
-                  <p>{notification.message}</p>
-                  <p>{notification.read ? "Leída" : "Nueva"}</p>
-
-                  {!notification.read && (
-                    <button
-                      onClick={() => marcarNotificacionLeida(notification.id)}
-                      className="button button-blue"
-                    >
-                      Marcar como leída
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
+  <NotificationsFeed
+  notifications={notifications}
+  cargarNotificaciones={cargarNotificaciones}
+  marcarNotificacionLeida={marcarNotificacionLeida}
+/>
 
 
 <div id="chat-section"></div>
