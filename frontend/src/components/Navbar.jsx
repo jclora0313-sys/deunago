@@ -1,4 +1,5 @@
 import NotificationsPanel from "./NotificationsPanel";
+import PushNotificationButton from "./PushNotificationButton";
 
 function Navbar({
   user,
@@ -45,7 +46,7 @@ function Navbar({
               marcarTodasNotificacionesLeidas
             }
           />
-
+<PushNotificationButton />
           <button
             onClick={logout}
             className="button button-danger"

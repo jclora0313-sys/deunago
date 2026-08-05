@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -33,6 +33,15 @@ export default function useRunner({
   const [identificationFile, setIdentificationFile] = useState(null);
   const [licenseFile, setLicenseFile] = useState(null);
   const [deliveryProofFile, setDeliveryProofFile] = useState(null);
+
+  useEffect(() => {
+  return () => {
+    if (trackingIntervalRef?.current) {
+      clearInterval(trackingIntervalRef.current);
+      trackingIntervalRef.current = null;
+    }
+  };
+}, [trackingIntervalRef]);
 
   const cargarMandados = async () => {
     try {

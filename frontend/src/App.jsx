@@ -295,13 +295,7 @@ useEffect(() => {
   return () => clearTimeout(timer);
 }, []);
 
-  useEffect(() => {
-    return () => {
-      if (trackingIntervalRef.current) {
-        clearInterval(trackingIntervalRef.current);
-      }
-    };
-  }, []);
+
 
   const getBadgeClass = (status) => {
     if (status === "OPEN") return "badge badge-open";
